@@ -1,4 +1,2 @@
-from classes.restaurant import Restaurant
+from classes.restaurant_order import Restaurant, restaurants
 
-rest = Restaurant(0)
-print(rest.foods)

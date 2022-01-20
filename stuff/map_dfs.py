@@ -11,7 +11,7 @@ import numpy as np
 Node = namedtuple("node", ["lat", "lon"])
 Edge = namedtuple("edge", ["start", "end", "directions", "time", "distance"])
 
-#os.chdir('..')
+os.chdir('..')
 path = os.getcwd()
 
 
@@ -25,6 +25,21 @@ def assign_loc(lat,lon,nodes):
     dist = np.sqrt((nodes[:,0]-lat)**2+(nodes[:,1]-lon)**2)
     index = np.argmin(dist)
     return int(index)
+
+""" -------- Create graph --------------- """
+
+# Make a new directed graph
+g = nx.DiGraph()
+
+# Add all nodes and their data
+g.add_nodes_from((i, {"coordinate": node}) for i, node in enumerate(nodes))
+
+
+# Add all edges and their data
+g.add_edges_from((edge.start, edge.end, {"time": edge.time, "distance": edge.distance}) for edge in edges)
+g.add_edges_from((edge.end, edge.start, {"time": edge.time, "distance": edge.distance}) for edge in edges if edge.directions == 2)
+
+
 
 
 """ -------------Create restaurants dataframe-------------------- """
