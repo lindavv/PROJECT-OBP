@@ -12,6 +12,8 @@ Node = namedtuple("node", ["lat", "lon"])
 Edge = namedtuple("edge", ["start", "end", "directions", "time", "distance"])
 
 #os.chdir('..')
+path_parent = os.path.dirname(os. getcwd())
+os.chdir(path_parent)
 path = os.getcwd()
 
 
@@ -26,6 +28,11 @@ def assign_loc(lat,lon,nodes):
     index = np.argmin(dist)
     return int(index)
 
+# Returns duration between two node indices in minutes
+def dist(n1, n2):
+    duration = nx.algorithms.shortest_path_length(g, n1.get_location()['node_index'], n2.get_location()['node_index'],
+                                                  weight="time")
+    return duration / 60
 
 """ -------------Create restaurants dataframe-------------------- """
 

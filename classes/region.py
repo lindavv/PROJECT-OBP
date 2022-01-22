@@ -1,4 +1,6 @@
 from stuff.map_dfs import rests_df
+from stuff.map_dfs import paris_nodes
+from stuff.map_dfs import assign_loc
 from shapely.geometry import Point, Polygon
 import os
 
@@ -13,6 +15,8 @@ class Region:
         self.area = region.area * 111.139**2        # area in km2
         self.n_res = self.get_restaurants()         # number of restaurants
         self.color = color
+        self.vehicles = []                          # Vehicle fleet of this region
+        self.depot = self.find_depot()
 
 
     def get_restaurants(self):
@@ -26,6 +30,16 @@ class Region:
         rest = {'n_rest':count,'index_rest':index}
         return rest
 
+    def set_vehicles(self,vehicles):
+      self.vehicles = vehicles
+
+    def get_vehicles(self):
+      return self.vehicles
+
+    def find_depot(self):
+      lat = list(self.poly.centroid.coords)[0][0]
+      lon = list(self.poly.centroid.coords)[0][1]
+      return assign_loc(lat,lon,paris_nodes)
 
 def read_region(color):
     """

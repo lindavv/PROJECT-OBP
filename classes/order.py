@@ -1,3 +1,4 @@
+import pandas as pd
 from stuff.map_dfs import *
 from classes.region import regions
 from classes.restaurant import *
