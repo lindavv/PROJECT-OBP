@@ -273,7 +273,7 @@ class Order:
         # ID of restaurant with lowest lower bound for delivery
         best_option = options_i[np.argmin(np.array(options_t))]
 
-        return best_option
+        return best_option #ID of best restaurant
 
     def restaurant_path(self, restaurant):
         # find duration in seconds of the shortest path from order node to restaurant node

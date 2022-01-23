@@ -23,10 +23,42 @@ with open(path+"/data/paris_map.txt") as file:
     edges = [Edge(*map(int, file.readline().split())) for _ in range(n_edges)]
     polygons = [Polygon(zip(*[map(float, file.readline().split())]*2)) for _ in range(n_polygons)]
 
+
 def assign_loc(lat,lon,nodes):
     dist = np.sqrt((nodes[:,0]-lat)**2+(nodes[:,1]-lon)**2)
     index = np.argmin(dist)
     return int(index)
+
+
+"""" ------------- Graphs---------------- """
+limit = 40*1000/60/60     # 40 km/h -> 11.11 m/s
+
+edges_slow = []
+for edge in edges:
+    m_s = edge.distance/edge.time
+    if m_s <= limit:
+        edges_slow.append(edge)
+
+
+# Make a new directed graph
+g = nx.DiGraph()
+
+# Add all nodes and their data
+g.add_nodes_from((i, {"coordinate": node}) for i, node in enumerate(nodes))
+
+# Add all edges and their data
+g.add_edges_from((edge.start, edge.end, {"time": edge.time, "distance": edge.distance}) for edge in edges)
+g.add_edges_from((edge.end, edge.start, {"time": edge.time, "distance": edge.distance}) for edge in edges if edge.directions == 2)
+
+""" Graph with only edges below 40km/h speed limit """
+g_slow = nx.DiGraph()
+g_slow.add_nodes_from((i, {"coordinate": node}) for i, node in enumerate(nodes))
+g_slow.add_edges_from((edge.start, edge.end, {"time": edge.time, "distance": edge.distance}) for edge in edges_slow)
+g_slow.add_edges_from((edge.end, edge.start, {"time": edge.time, "distance": edge.distance}) for edge in edges_slow if edge.directions == 2)
+
+
+
+
 
 # Returns duration between two node indices in minutes
 def dist(n1, n2):

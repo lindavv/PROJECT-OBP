@@ -1,6 +1,6 @@
-<<<<<<< Updated upstream
+#<<<<<<< Updated upstream
 orders = {}
-=======
+#=======
 import pandas as pd
 from classes.restaurant_order import Order, Restaurant, restaurants
 import os
@@ -39,4 +39,4 @@ res = restaurants[orders[0].restaurant]
 print(res.queue)
 
 
->>>>>>> Stashed changes
+#>>>>>>> Stashed changes
