@@ -137,7 +137,9 @@ class Restaurant:
 
         # store, for the order, the time it is finished preparing
         latest_finish_time = self.queue[foodtype][-1][2]
-        order.time_prepared = latest_finish_time
+        #order.time_prepared = latest_finish_time
+        order.window[0] = latest_finish_time
+        order.window[1] = order.window[0] + timedelta(0, 60*60)
 
     def update_queue(self, dt):
         # look at queue, move food that is done preparing to finished['partial']
@@ -233,8 +235,13 @@ class Order:
         self.set_region()
 
         # these can be updated when the order is done
-        self.time_prepared = False
-        self.time_delivered = False
+        #self.start = False
+        #self.end = False
+
+        self.window = [False, False]
+
+        self.assign_restaurant()
+
 
     def assign_restaurant(self):
         self.restaurant = self.choose_restaurant()

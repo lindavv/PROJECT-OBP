@@ -62,7 +62,7 @@ g_slow.add_edges_from((edge.end, edge.start, {"time": edge.time, "distance": edg
 
 # Returns duration between two node indices in minutes
 def dist(n1, n2):
-    duration = nx.algorithms.shortest_path_length(g, n1.get_location()['node_index'], n2.get_location()['node_index'],
+    duration = nx.algorithms.shortest_path_length(g, n1.location, n2.location,
                                                   weight="time")
     return duration / 60
 

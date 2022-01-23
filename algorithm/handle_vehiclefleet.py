@@ -13,7 +13,7 @@ from classes.route_node import *
 
 #Shift start
 t = datetime.datetime.now()
-t = t.replace(hour = 17)
+t = t.replace(hour = 14)
 t = t.replace(minute = 0)
 t = t.replace(second = 0)
 t = t.replace(microsecond = 0)
@@ -24,3 +24,12 @@ for i in range(50):
 
 regions[7].set_vehicles(fleet_lightgreen)
 pprint(vars(regions[7]))
+
+
+
+
+for i in range(1, 8):
+    fleet = []
+    for j in range(50):
+        fleet.append(Vehicle(regions[i], t))
+    regions[i].set_vehicles(fleet)

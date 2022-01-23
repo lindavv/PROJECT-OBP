@@ -6,9 +6,14 @@ from classes.route_node import *
 
 """ Needs Shift start and region as input argument when initialized. That is an object of datetime which states the starting time of this vehicle."""
 
+
+
+
+
+
 class Vehicle:
 
-    def __init__(self, region, shift_start):
+    def __init__(self, region, shift_start, max_cap = 20):
 
         self.region = region  # polygon object of shapely package
         # dynamically get position
@@ -18,7 +23,13 @@ class Vehicle:
         self.wait = [0]
         self.arrival = [shift_start]
         self.maxshift = [180]
+
         # self.time_busy
+
+        self.kms = 0
+        self.cap = max_cap
+
+
 
     def set_route(self, route):
         self.route = route
@@ -39,7 +50,7 @@ class Vehicle:
         return self.arrival
 
     def set_depot(self, region, shift_start):
-        depot = Route_node()
+        depot = Route_node(0, 0, 0)
         depot.set_location(region.depot)
         depot.set_time_window(shift_start, shift_start + datetime.timedelta(hours=4))
         return depot
@@ -54,8 +65,8 @@ class Vehicle:
         n = len(self.route)
         arr_node = max(self.arrival[n - 1] + datetime.timedelta(minutes=self.wait[n - 1]),
                        self.last_update) + datetime.timedelta(minutes=dist(self.route[n - 1], node))
-        wait_node = max(0, (node.get_time_window()['opening'] - arr_node).total_seconds() / 60)
-        maxshift_node = (node.get_time_window()['closing'] - arr_node).total_seconds() / 60
+        wait_node = max(0, (node.window[0] - arr_node).total_seconds() / 60)
+        maxshift_node = (node.window[1] - arr_node).total_seconds() / 60
         self.route.append(node)
         self.wait.append(wait_node)
         self.arrival.append(arr_node)
@@ -64,15 +75,22 @@ class Vehicle:
     def update_vehicle(self, time_now):
         if len(self.route) > 1:
             # find out which nodes have already been passed
-            temp = [idx for idx, element in enumerate(self.arrival) if element <= time_now]
+            #temp = [idx for idx, element in enumerate(self.arrival) if element <= time_now]
+            temp = []
+            for i in range(len(self.route)):
+                if self.arrival[i] <= time_now:
+                    temp.append(i)
             drop = 0
             for i in temp:
-                if self.route[i].get_time_window()['opening'] < time_now:
+                if self.route[i].get_time_window()[0] < time_now:
                     drop += 1
             for i in range(drop - 1):
                 self.drop_node(0)
-            self.wait[1] = max((self.route[1].get_time_window()['opening'] - time_now).total_seconds() / 60,
+            if len(self.route) > 1:
+                self.wait[1] = max((self.route[1].get_time_window()[0] - time_now).total_seconds() / 60,
                                self.wait[1])
+            else:
+                self.wait[0] = 0
         self.last_update = time_now
         # self.wait[1] = (time_now-self.last_update).total_seconds()/60
         # self.wait[0] = max(0,self.wait[0]-round(temp.total_seconds()/60))
@@ -128,11 +146,11 @@ class Vehicle:
 
     def insert(self, node, behind):
         # insert node behind index "behind"
-        n_pick = pick2
+        #n_pick = node
         i = behind
         arr_node = max(self.arrival[i] + datetime.timedelta(minutes=self.wait[i]),
                        self.last_update) + datetime.timedelta(minutes=dist(self.route[i], node))
-        wait_node = max(0, (node.get_time_window()['opening'] - arr_node).total_seconds() / 60)
+        wait_node = max(0, (node.get_time_window()[0] - arr_node).total_seconds() / 60)
         if i < len(self.route) - 1:
             # update nodes after insertion
             shift = dist(self.route[i], node) + wait_node + dist(self.route[i + 1], node) - dist(self.route[i],
@@ -143,7 +161,7 @@ class Vehicle:
                 shift = max(0, shift - self.wait[j])
                 self.maxshift[j] = self.maxshift[j] - shift
             # update insertion node
-            maxshift_node = (node.get_time_window()['closing'] - arr_node).total_seconds() / 60
+            maxshift_node = (node.get_time_window()[1] - arr_node).total_seconds() / 60
             # insert node
             self.arrival.insert(i + 1, arr_node)
             self.wait.insert(i + 1, wait_node)
@@ -151,7 +169,7 @@ class Vehicle:
             self.route.insert(i + 1, node)
             # and nodes before insertion
             for l in range(i, -1, -1):
-                self.maxshift[l] = (self.route[l].get_time_window()['closing'] - self.arrival[l]).total_seconds() / 60
+                self.maxshift[l] = (self.route[l].get_time_window()[1] - self.arrival[l]).total_seconds() / 60
         else:
             self.append_node(node)
 
