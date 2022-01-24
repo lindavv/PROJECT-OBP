@@ -40,6 +40,8 @@ def order_to_node(order):
     drop = Route_node(order.node, order.amount, order.time)
     pick.set_time_window(order.window[0], order.window[0]+timedelta(0, 120*60))
     drop.set_time_window(order.window[0], order.window[1])
+    pick.set_type(0)
+    drop.set_type(1)
 
     return pick, drop
 

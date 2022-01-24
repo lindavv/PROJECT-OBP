@@ -24,10 +24,11 @@ class Vehicle:
         self.arrival = [shift_start]
         self.maxshift = [180]
 
+
         # self.time_busy
 
         self.kms = 0
-        self.cap = max_cap
+        self.cap = [max_cap]
 
 
 
@@ -60,6 +61,7 @@ class Vehicle:
         del self.wait[idx]
         del self.arrival[idx]
         del self.maxshift[idx]
+        del self.cap[idx]
 
     def append_node(self, node):
         n = len(self.route)
@@ -71,6 +73,10 @@ class Vehicle:
         self.wait.append(wait_node)
         self.arrival.append(arr_node)
         self.maxshift.append(maxshift_node)
+        if node.get_type() == 0 :
+            self.cap.append(self.cap[n-1] - node.number_of_meals)
+        else:
+            self.cap.append(self.cap[n-1] + node.number_of_meals)
 
     def update_vehicle(self, time_now):
         if len(self.route) > 1:
@@ -95,6 +101,15 @@ class Vehicle:
         # self.wait[1] = (time_now-self.last_update).total_seconds()/60
         # self.wait[0] = max(0,self.wait[0]-round(temp.total_seconds()/60))
 
+
+    def check_insertion(self, node, behind):
+        """ Only call this function for pick up nodes!! """
+        if self.cap[behind] >= node.number_of_meals:
+            return True
+        else:
+            return False
+
+
     def find_best_position(self, n_pick, n_drop):
         # This function is given a vehicle and two nodes and calculates where to put them best
         if len(self.route) <= 1:
@@ -110,18 +125,19 @@ class Vehicle:
             bestrouteval_pick = -1000
             for i in range(1, len(self.route)):
                 tempv = copy.deepcopy(self)
-                tempv.insert(node, i)
-                p = tempv.route_value()
-                if p > bestrouteval_pick:
-                    bestrouteval_pick = p
-                    earliest_arrival = tempv.arrival[i + 1]
-                    bestroute_pick = tempv
-                    behind = i
-                elif p == bestrouteval_pick:
-                    if tempv.arrival[i + 1] < earliest_arrival:
+                if self.check_insertion(node, i):
+                    tempv.insert(node, i)
+                    p = tempv.route_value()
+                    if p > bestrouteval_pick:
+                        bestrouteval_pick = p
                         earliest_arrival = tempv.arrival[i + 1]
                         bestroute_pick = tempv
                         behind = i
+                    elif p == bestrouteval_pick:
+                        if tempv.arrival[i + 1] < earliest_arrival:
+                            earliest_arrival = tempv.arrival[i + 1]
+                            bestroute_pick = tempv
+                            behind = i
             # Now find drop position after pick_node
             if behind == len(bestroute_pick.route) - 1:
                 bestroute_pick.append_node(n_drop)
@@ -151,6 +167,11 @@ class Vehicle:
         arr_node = max(self.arrival[i] + datetime.timedelta(minutes=self.wait[i]),
                        self.last_update) + datetime.timedelta(minutes=dist(self.route[i], node))
         wait_node = max(0, (node.get_time_window()[0] - arr_node).total_seconds() / 60)
+        if node.get_type() == 0:
+            cap_node = self.cap[behind] - node.number_of_meals
+        else:
+            cap_node = self.cap[behind] + node.number_of_meals
+
         if i < len(self.route) - 1:
             # update nodes after insertion
             shift = dist(self.route[i], node) + wait_node + dist(self.route[i + 1], node) - dist(self.route[i],
@@ -160,6 +181,11 @@ class Vehicle:
                 self.arrival[j] = self.arrival[j] + datetime.timedelta(minutes=shift)
                 shift = max(0, shift - self.wait[j])
                 self.maxshift[j] = self.maxshift[j] - shift
+                if node.get_type() == 0:
+                    self.cap[j] -= node.number_of_meals
+                else:
+                    self.cap[j] += node.number_of_meals
+
             # update insertion node
             maxshift_node = (node.get_time_window()[1] - arr_node).total_seconds() / 60
             # insert node
@@ -167,6 +193,8 @@ class Vehicle:
             self.wait.insert(i + 1, wait_node)
             self.maxshift.insert(i + 1, maxshift_node)
             self.route.insert(i + 1, node)
+            self.cap.insert(i+1, cap_node)
+
             # and nodes before insertion
             for l in range(i, -1, -1):
                 self.maxshift[l] = (self.route[l].get_time_window()[1] - self.arrival[l]).total_seconds() / 60
