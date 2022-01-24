@@ -57,9 +57,16 @@ class Vehicle:
         return depot
 
     def drop_node(self, idx):
+        """ Drop nodes when vehicle has passed these (based on time) """
+
+        # update time the customer has been waiting!!
         if self.route[idx].type_ == 1:
             ord = self.route[idx].order
+            # only do cases where we haven't calculated waiting time before (to avoid bug)
+            #if ord.wait == 0:
             ord.calc_waiting_time(self.arrival[idx])
+
+        # dropping nodes from vehicle
         del self.route[idx]
         del self.wait[idx]
         del self.arrival[idx]
@@ -218,7 +225,7 @@ def assign_order(n_pick, n_drop, region_fleet, order_time):
     # Information will be returned to GUI
     region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
     #print(assign['Vehicle_info']['cap'])
-    print('Order was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
+    print('Order ', n_drop.order.id, ' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
           assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
           'stations before.')
     return region_fleet

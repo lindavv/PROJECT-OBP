@@ -19,13 +19,6 @@ t = t.replace(minute = 0)
 t = t.replace(second = 0)
 t = t.replace(microsecond = 0)
 
-fleet_lightgreen = []
-for i in range(50):
-    fleet_lightgreen.append(Vehicle(regions[7],t))
-
-regions[7].set_vehicles(fleet_lightgreen)
-#pprint(vars(regions[7]))
-
 
 
 

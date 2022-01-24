@@ -26,7 +26,7 @@ def create_orders(df_index):
             id = len(orders)
             order = Order(id, food[1], food[0][:-7], row.copy())
             orders[id] = order
-    return order
+
 
 
 orders = {}
@@ -56,9 +56,12 @@ def order_to_node(order):
 
 pick_up_nodes, drop_off_nodes = [], []
 
+number = 100
 
-for i in range(400):
-    orders[i] = create_orders(i)
+for i in range(number):
+    create_orders(i)
+
+for i in range(len(orders)):
     pick, drop = order_to_node(orders[i])
     pick_up_nodes.append(pick)
     drop_off_nodes.append(drop)
