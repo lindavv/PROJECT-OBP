@@ -5,14 +5,15 @@ This file should handle the vehicle fleet. This includes:
 - The attribute when a vehicle stops working still has to be added to the object and the algorithm
 """
 from pprint import pprint
-import datetime
+from datetime import datetime, timedelta
 from classes.region import *
 from classes.vehicle import *
 from classes.route_node import *
 
 
 #Shift start
-t = datetime.datetime.now()
+#t = datetime.datetime.now()
+t = datetime.now()
 t = t.replace(hour = 14)
 t = t.replace(minute = 0)
 t = t.replace(second = 0)
@@ -23,7 +24,7 @@ for i in range(50):
     fleet_lightgreen.append(Vehicle(regions[7],t))
 
 regions[7].set_vehicles(fleet_lightgreen)
-pprint(vars(regions[7]))
+#pprint(vars(regions[7]))
 
 
 

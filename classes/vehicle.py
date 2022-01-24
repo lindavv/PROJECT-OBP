@@ -1,6 +1,6 @@
 #import time
 import copy
-import datetime
+from datetime import datetime, timedelta
 from stuff.map_dfs import dist
 from classes.route_node import *
 
@@ -53,10 +53,13 @@ class Vehicle:
     def set_depot(self, region, shift_start):
         depot = Route_node(0, 0, 0)
         depot.set_location(region.depot)
-        depot.set_time_window(shift_start, shift_start + datetime.timedelta(hours=4))
+        depot.set_time_window(shift_start, shift_start + timedelta(hours=4))
         return depot
 
     def drop_node(self, idx):
+        if self.route[idx].type_ == 1:
+            ord = self.route[idx].order
+            ord.calc_waiting_time(self.arrival[idx])
         del self.route[idx]
         del self.wait[idx]
         del self.arrival[idx]
@@ -65,8 +68,8 @@ class Vehicle:
 
     def append_node(self, node):
         n = len(self.route)
-        arr_node = max(self.arrival[n - 1] + datetime.timedelta(minutes=self.wait[n - 1]),
-                       self.last_update) + datetime.timedelta(minutes=dist(self.route[n - 1], node))
+        arr_node = max(self.arrival[n - 1] + timedelta(minutes=self.wait[n - 1]),
+                       self.last_update) + timedelta(minutes=dist(self.route[n - 1], node))
         wait_node = max(0, (node.window[0] - arr_node).total_seconds() / 60)
         maxshift_node = (node.window[1] - arr_node).total_seconds() / 60
         self.route.append(node)
@@ -157,15 +160,15 @@ class Vehicle:
                             earliest_arrival = tempv.arrival[j + 1]
                             bestroute = tempv
                             position = j
-        solution = {'Route': bestroute, 'Arrival': earliest_arrival, 'position in queue': position}
+        solution = {'Route': bestroute, 'Arrival': earliest_arrival, 'position in queue': position, 'cap':self.cap}
         return solution
 
     def insert(self, node, behind):
         # insert node behind index "behind"
         #n_pick = node
         i = behind
-        arr_node = max(self.arrival[i] + datetime.timedelta(minutes=self.wait[i]),
-                       self.last_update) + datetime.timedelta(minutes=dist(self.route[i], node))
+        arr_node = max(self.arrival[i] + timedelta(minutes=self.wait[i]),
+                       self.last_update) + timedelta(minutes=dist(self.route[i], node))
         wait_node = max(0, (node.get_time_window()[0] - arr_node).total_seconds() / 60)
         if node.get_type() == 0:
             cap_node = self.cap[behind] - node.number_of_meals
@@ -178,7 +181,7 @@ class Vehicle:
                                                                                                  self.route[i + 1])
             for j in range(i + 1, len(self.route)):
                 self.wait[j] = max(0, self.wait[j] - shift)
-                self.arrival[j] = self.arrival[j] + datetime.timedelta(minutes=shift)
+                self.arrival[j] = self.arrival[j] + timedelta(minutes=shift)
                 shift = max(0, shift - self.wait[j])
                 self.maxshift[j] = self.maxshift[j] - shift
                 if node.get_type() == 0:
@@ -201,6 +204,7 @@ class Vehicle:
         else:
             self.append_node(node)
 
+
     def route_value(self):
         delay = [x for x in self.maxshift if x < 0]
         p = sum(delay) / 10
@@ -213,7 +217,8 @@ def assign_order(n_pick, n_drop, region_fleet, order_time):
     assign = find_best_vehicle(n_pick, n_drop, region_fleet)
     # Information will be returned to GUI
     region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
-    print('Order was assigned to vehicle number', assign['Vehicle_id'], ' . Estimated arrival time at Customer is',
+    #print(assign['Vehicle_info']['cap'])
+    print('Order was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
           assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
           'stations before.')
     return region_fleet

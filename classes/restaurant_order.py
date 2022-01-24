@@ -141,9 +141,21 @@ class Restaurant:
         order.window[0] = latest_finish_time
         order.window[1] = order.window[0] + timedelta(0, 60*60)
 
+
     def update_queue(self, dt):
-        # look at queue, move food that is done preparing to finished['partial']
-        # when full order is complete, move to finished['full']
+        t = dt.time()
+
+        # check which foods have been prepared
+        for food in self.foods.keys():
+            queue = self.queue[food].copy()
+
+            for item in queue:
+                if item[2].time() < t:
+                    self.queue[food].remove(item)
+
+
+    def update_queue_old(self, dt):
+        """ Take orders out of queue that are done preparing """
 
         t = dt.time()
 
@@ -175,12 +187,10 @@ class Restaurant:
                     # add order ID to finished list
                     self.finished['partial'].remove(item)
 
-    def pick_up_order(self, order):
-        # order is picked up by truck and removed from finished orders list
-        pass
-
     def finish_day(self):
-        """ Empty queue, finished['partial'] and finished['full'] """
+        """ Empty queue, finished['partial'] and finished['full']
+        We probably don't need this function
+        """
         for food in self.foods.keys():
             self.queue[food] = []
 
@@ -234,9 +244,7 @@ class Order:
 
         self.set_region()
 
-        # these can be updated when the order is done
-        #self.start = False
-        #self.end = False
+        self.wait = 0
 
         self.window = [False, False]
 
@@ -253,6 +261,21 @@ class Order:
         for region in regions.keys():
             if regions[region].poly.contains(Point(self.data['lat'], self.data['lon'])):
                 self.region = region
+
+    def calc_waiting_time(self, end):
+        """
+        Calc customer waiting time
+        waiting time defines as difference delivery time and time order is done prepating at restaurant
+        (so preparation time not included)
+        """
+        start = self.window[0]
+        difference = end - start
+
+        # set customer waiting time in minutes
+        self.wait = difference.total_seconds() / 60
+        print(self.id, self.amount, start, end, self.wait, self.region)
+
+
 
     def choose_restaurant(self):
         options_t, options_i = [], []

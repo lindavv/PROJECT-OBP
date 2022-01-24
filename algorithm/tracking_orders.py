@@ -32,12 +32,17 @@ def create_orders(df_index):
 orders = {}
 
 
+def order_to_node2(order):
+    # make nodes
+    pick = Route_node2(order, 0)
+    drop = Route_node2(order, 1)
 
+    return pick, drop
 
 def order_to_node(order):
     # make nodes
-    pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time)
-    drop = Route_node(order.node, order.amount, order.time)
+    pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time, order)
+    drop = Route_node(order.node, order.amount, order.time, order)
     pick.set_time_window(order.window[0], order.window[0]+timedelta(0, 120*60))
     drop.set_time_window(order.window[0], order.window[1])
     pick.set_type(0)
@@ -52,7 +57,7 @@ def order_to_node(order):
 pick_up_nodes, drop_off_nodes = [], []
 
 
-for i in range(20,40):
+for i in range(400):
     orders[i] = create_orders(i)
     pick, drop = order_to_node(orders[i])
     pick_up_nodes.append(pick)
@@ -63,6 +68,8 @@ for i in range(20,40):
 
 veh = regions[4].get_vehicles()[0]
 pprint(vars(veh))
+
+
 
 #print(dist(veh.route[1], veh.route[2]))
 
