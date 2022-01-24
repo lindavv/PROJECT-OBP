@@ -63,8 +63,8 @@ class Vehicle:
         if self.route[idx].type_ == 1:
             ord = self.route[idx].order
             # only do cases where we haven't calculated waiting time before (to avoid bug)
-            #if ord.wait == 0:
-            ord.calc_waiting_time(self.arrival[idx])
+            if ord.wait == 0:
+                ord.calc_waiting_time(self.arrival[idx])
 
         # dropping nodes from vehicle
         del self.route[idx]
@@ -123,9 +123,10 @@ class Vehicle:
     def find_best_position(self, n_pick, n_drop):
         # This function is given a vehicle and two nodes and calculates where to put them best
         if len(self.route) <= 1:
-            self.append_node(n_pick)
-            self.append_node(n_drop)
             bestroute = copy.deepcopy(self)
+            bestroute.append_node(n_pick)
+            bestroute.append_node(n_drop)
+
             earliest_arrival = bestroute.arrival[2]
             position = 2
         else:
@@ -225,7 +226,7 @@ def assign_order(n_pick, n_drop, region_fleet, order_time):
     # Information will be returned to GUI
     region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
     #print(assign['Vehicle_info']['cap'])
-    print('Order ', n_drop.order.id, ' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
+    print('Order ', n_drop.order_id, ' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
           assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
           'stations before.')
     return region_fleet

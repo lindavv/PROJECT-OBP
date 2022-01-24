@@ -41,8 +41,8 @@ def order_to_node2(order):
 
 def order_to_node(order):
     # make nodes
-    pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time, order)
-    drop = Route_node(order.node, order.amount, order.time, order)
+    pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time, order.id)
+    drop = Route_node(order.node, order.amount, order.time, order.id)
     pick.set_time_window(order.window[0], order.window[0]+timedelta(0, 120*60))
     drop.set_time_window(order.window[0], order.window[1])
     pick.set_type(0)
@@ -56,7 +56,7 @@ def order_to_node(order):
 
 pick_up_nodes, drop_off_nodes = [], []
 
-number = 100
+number = 3
 
 for i in range(number):
     create_orders(i)
@@ -69,8 +69,14 @@ for i in range(len(orders)):
     assign_order(pick, drop, regions[orders[i].region].get_vehicles(), orders[i].time)
 
 
-veh = regions[4].get_vehicles()[0]
-pprint(vars(veh))
+vehs = regions[6].get_vehicles()
+for veh in vehs:
+    li = []
+    for node in veh.route:
+
+        li.append(node.location)
+    print(li)
+
 
 
 

@@ -50,9 +50,9 @@ class Route_node2:
 
 class Route_node:
     # Missing: assign region to node
-    def __init__(self, location, number_of_meals, time, order = None):
+    def __init__(self, location, number_of_meals, time, order_id = None):
         self.type_ = np.NaN
-        self.order  = order
+        self.order_id  = order_id
         self.location = location
         self.window = [0, 0]
         self.number_of_meals = number_of_meals  # Either to be picked up or dropped off, depending on type
