@@ -230,6 +230,16 @@ restaurants = {}
 for i in range(42):
     restaurants[i] = Restaurant(i)
 
+def update_order_waiting_time(order, end):
+    start = order.window[0]
+    difference = end - start
+
+    # set customer waiting time in minutes
+    order.wait = difference.total_seconds() / 60
+    print(order.id, order.amount, start, end, order.wait, order.region)
+
+
+
 
 class Order:
     """ First draft for order class, just to test restaurant functions """

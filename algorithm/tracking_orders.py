@@ -8,9 +8,9 @@ from stuff.map_dfs import g
 import networkx as nx
 from classes.route_node import *
 from classes.region import *
-from algorithm.handle_vehiclefleet import *
+from classes.vehicle import *
 from datetime import datetime, timedelta
-
+from algorithm.handle_vehiclefleet import *
 
 root = os.getcwd() + '/data/orders/orders_21-01-0'+ str(7) + '.csv'
 orders_df = pd.read_csv(root, sep=' ', index_col = 0)
@@ -41,8 +41,8 @@ def order_to_node2(order):
 
 def order_to_node(order):
     # make nodes
-    pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time, order.id)
-    drop = Route_node(order.node, order.amount, order.time, order.id)
+    pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time, order)
+    drop = Route_node(order.node, order.amount, order.time, order)
     pick.set_time_window(order.window[0], order.window[0]+timedelta(0, 120*60))
     drop.set_time_window(order.window[0], order.window[1])
     pick.set_type(0)
@@ -56,7 +56,7 @@ def order_to_node(order):
 
 pick_up_nodes, drop_off_nodes = [], []
 
-number = 3
+number = 16
 
 for i in range(number):
     create_orders(i)
@@ -68,14 +68,6 @@ for i in range(len(orders)):
 
     assign_order(pick, drop, regions[orders[i].region].get_vehicles(), orders[i].time)
 
-
-vehs = regions[6].get_vehicles()
-for veh in vehs:
-    li = []
-    for node in veh.route:
-
-        li.append(node.location)
-    print(li)
 
 
 

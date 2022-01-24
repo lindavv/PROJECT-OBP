@@ -7,7 +7,7 @@ This file should handle the vehicle fleet. This includes:
 from pprint import pprint
 from datetime import datetime, timedelta
 from classes.region import *
-from classes.vehicle import *
+from classes.vehicle import Vehicle
 from classes.route_node import *
 
 

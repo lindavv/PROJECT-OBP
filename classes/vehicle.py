@@ -63,8 +63,8 @@ class Vehicle:
         if self.route[idx].type_ == 1:
             ord = self.route[idx].order
             # only do cases where we haven't calculated waiting time before (to avoid bug)
-            if ord.wait == 0:
-                ord.calc_waiting_time(self.arrival[idx])
+            #if ord.wait == 0:
+            update_order_waiting_time(ord, self.arrival[idx])
 
         # dropping nodes from vehicle
         del self.route[idx]
@@ -133,7 +133,7 @@ class Vehicle:
             # First best position for pick up node
             # Check all route possibilities
             node = n_pick
-            bestrouteval_pick = -1000
+            bestrouteval_pick = -10000
             for i in range(1, len(self.route)):
                 tempv = copy.deepcopy(self)
                 if self.check_insertion(node, i):
@@ -153,7 +153,7 @@ class Vehicle:
             if behind == len(bestroute_pick.route) - 1:
                 bestroute_pick.append_node(n_drop)
             else:
-                bestrouteval = -1000
+                bestrouteval = -10000
                 for j in range(behind + 1, len(bestroute_pick.route)):
                     tempv = copy.deepcopy(bestroute_pick)
                     tempv.insert(n_drop, j)
@@ -226,7 +226,7 @@ def assign_order(n_pick, n_drop, region_fleet, order_time):
     # Information will be returned to GUI
     region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
     #print(assign['Vehicle_info']['cap'])
-    print('Order ', n_drop.order_id, ' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
+    print('Order ', n_drop.order.id, ' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
           assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
           'stations before.')
     return region_fleet
@@ -234,7 +234,7 @@ def assign_order(n_pick, n_drop, region_fleet, order_time):
 
 def find_best_vehicle(n_pick, n_drop, region_fleet):
     # get region specific fleet #Missing
-    bestrouteval = -1000
+    bestrouteval = -10000
     for i in range(len(region_fleet)):
         current = region_fleet[i].find_best_position(n_pick, n_drop)
         rv = current['Route'].route_value()
