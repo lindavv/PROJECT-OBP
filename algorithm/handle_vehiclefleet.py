@@ -25,5 +25,5 @@ t = t.replace(microsecond = 0)
 for i in range(1, 8):
     fleet = []
     for j in range(50):
-        fleet.append(Vehicle(regions[i], t))
+        fleet.append(Vehicle(i, t,1))
     regions[i].set_vehicles(fleet)

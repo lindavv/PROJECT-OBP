@@ -56,7 +56,7 @@ def order_to_node(order):
 
 pick_up_nodes, drop_off_nodes = [], []
 
-number = 16
+number = 20
 
 for i in range(number):
     create_orders(i)
@@ -65,9 +65,10 @@ for i in range(len(orders)):
     pick, drop = order_to_node(orders[i])
     pick_up_nodes.append(pick)
     drop_off_nodes.append(drop)
-
-    assign_order(pick, drop, regions[orders[i].region].get_vehicles(), orders[i].time)
-
+    assign_order(pick, drop, regions[orders[i].region].get_vehicles(), orders[i].time, mode='cost')
+"""Mode can either be time or cost, depending on optimization focus"""
+for i in range(1, 8):
+    print('Region ', i,' Overview ',regions[i].evaluation)
 
 
 

@@ -239,7 +239,7 @@ def update_order_waiting_time(order, end):
     print(order.id, order.amount, start, end, order.wait, order.region)
 
 
-
+#def update_order_status
 
 class Order:
     """ First draft for order class, just to test restaurant functions """

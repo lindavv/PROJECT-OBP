@@ -66,6 +66,12 @@ def dist(n1, n2):
                                                   weight="time")
     return duration / 60
 
+# Returns distance between two nodes in km
+def dist_km(n1,n2):
+    route = nx.algorithms.shortest_path(g, n1, n2, weight="time")
+    distance =  sum(g[u][v]["distance"] for u, v in zip(route, route[1:]))
+    return distance/1000
+
 """ -------------Create restaurants dataframe-------------------- """
 
 rests_df = pd.read_csv(path + '/data/restaurants.csv', delimiter = " ")

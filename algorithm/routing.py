@@ -1,9 +1,12 @@
 import pandas as pd
 import os
-from classes.region import regions
-print(os.getcwd())
-path_parent = os.path.dirname(os. getcwd())
-print(path_parent)
-os.chdir(path_parent)
-print(os.getcwd()
-      )
+from pprint import pprint
+from stuff.test_data_vrp import *
+from classes.vehicle import *
+from classes.region import *
+from algorithm.handle_vehiclefleet import *
+
+
+#pprint(vars(regions[7].get_vehicles()[0]))
+sol = assign_order(pick1,drop1,regions[7].get_vehicles(),time_now1)
+print(sol)
