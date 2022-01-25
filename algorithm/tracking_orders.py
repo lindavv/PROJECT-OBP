@@ -1,16 +1,9 @@
 #<<<<<<< Updated upstream
 orders = {}
 #=======
-import pandas as pd
-from classes.restaurant_order import Order, Restaurant, restaurants
-import os
-from stuff.map_dfs import g
-import networkx as nx
-from classes.route_node import *
-from classes.region import *
-from classes.vehicle import *
-from datetime import datetime, timedelta
+
 from algorithm.handle_vehiclefleet import *
+from classes.vehicle import assign_order
 
 root = os.getcwd() + '/data/orders/orders_21-01-0'+ str(7) + '.csv'
 orders_df = pd.read_csv(root, sep=' ', index_col = 0)
@@ -56,19 +49,31 @@ def order_to_node(order):
 
 pick_up_nodes, drop_off_nodes = [], []
 
-number = 20
+number = 10
 
 for i in range(number):
     create_orders(i)
+
+
+date = datetime.now().date()
+initialize_vehicles(date)
+
+
 
 for i in range(len(orders)):
     pick, drop = order_to_node(orders[i])
     pick_up_nodes.append(pick)
     drop_off_nodes.append(drop)
-    assign_order(pick, drop, regions[orders[i].region].get_vehicles(), orders[i].time, mode='cost')
+    #print(pick.order.time)
+    assign_order(pick, drop, orders[i].time, mode='time')
+
+#region_fleet = regions[1].get_vehicles()
+
+#print((region_fleet[0].get_shift_end() - pick_up_nodes[0].order.time + timedelta(minutes = region_fleet[0].get_empty())).total_seconds()/60)
+#pprint(vars(regions[6].get_vehicles()[4]))
 """Mode can either be time or cost, depending on optimization focus"""
-for i in range(1, 8):
-    print('Region ', i,' Overview ',regions[i].evaluation)
+#for i in range(1, 8):
+    #print('Region ', i,' Overview ',regions[i].evaluation)
 
 
 

@@ -25,6 +25,7 @@ class Vehicle:
         self.wait = [0]
         self.arrival = [shift_start]
         self.maxshift = [180]
+        self.shift_start = shift_start
         self.shift_end = shift_end
         self.empty = 0                          #time in minutes until vehicle is empty
 
@@ -57,6 +58,11 @@ class Vehicle:
     def get_empty(self):
         return self.empty
 
+    def get_shift_start(self):
+        return self.shift_start
+
+    def get_shift_end(self):
+        return self.shift_end
 
     def set_depot(self, region, shift_start):
         depot = Route_node(0, 0, 0)
@@ -70,8 +76,11 @@ class Vehicle:
         # update time the customer has been waiting!!
         waiting_time = 0
         delay = 0
+        ord = self.route[idx].order
+        type = self.route[idx].type_
+        #update_order_status(type, ord)
         if self.route[idx].type_ == 1:
-            ord = self.route[idx].order
+
             # only do cases where we haven't calculated waiting time before (to avoid bug)
             #if ord.wait == 0:
             update_order_waiting_time(ord, self.arrival[idx])
@@ -251,35 +260,38 @@ class Vehicle:
         return sum(self.kms)
 
 
-def assign_order(n_pick, n_drop, region_fleet, order_time, mode = 'time'):
+def assign_order(n_pick, n_drop, order_time, mode = 'time'):
+    region = n_pick.order.get_region()
+    region_fleet = regions[region].get_vehicles()
     for i in region_fleet:
         i.update_vehicle(order_time)
     assign = find_best_vehicle(n_pick, n_drop, region_fleet, mode)
     # Information will be returned to GUI
     region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
     #print(assign['Vehicle_info']['cap'])
-    print('Order ', n_drop.order.id, ' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
+    print('Order ', n_drop.order.id, 'in Region ', region ,' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
           assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
           'stations before.')
     return region_fleet
 
 
 def find_best_vehicle(n_pick, n_drop, region_fleet, mode):
-    # get region specific fleet #Missing
     if mode == 'time':
         bestrouteval = -10000
         for i in range(len(region_fleet)):
-            current = region_fleet[i].find_best_position(n_pick, n_drop)
-            rv = current['Route'].route_value()
-            if rv > bestrouteval:
-                vehicle_info = current
-                bestrouteval = rv
-                vehicle_id = i
-            elif rv == bestrouteval:
-                if current['Arrival'] < vehicle_info['Arrival']:
+            time_available = (region_fleet[i].get_shift_end() - n_pick.order.time + timedelta(minutes = region_fleet[i].get_empty())).total_seconds()/60
+            if time_available > 15: #Only consider vehicle if it would otherwise be empty for the last 15 minutes of shift
+                current = region_fleet[i].find_best_position(n_pick, n_drop)
+                rv = current['Route'].route_value()
+                if rv > bestrouteval:
                     vehicle_info = current
                     bestrouteval = rv
                     vehicle_id = i
+                elif rv == bestrouteval:
+                    if current['Arrival'] < vehicle_info['Arrival']:
+                        vehicle_info = current
+                        bestrouteval = rv
+                        vehicle_id = i
     else:
         bestrouteval = 10000
         for i in range(len(region_fleet)):

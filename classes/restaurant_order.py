@@ -239,8 +239,12 @@ def update_order_waiting_time(order, end):
     print(order.id, order.amount, start, end, order.wait, order.region)
 
 
-#def update_order_status
-
+def update_order_status(type, order):
+    if type == 0:
+        order.status = 'on the way'
+    else:
+        order.status = 'delivered'
+    print(order.id, order.amount, start, end, order.status, order.region)
 class Order:
     """ First draft for order class, just to test restaurant functions """
 
@@ -251,6 +255,7 @@ class Order:
         self.data = data
         self.node = assign_loc(self.data['lat'], self.data['lon'], paris_nodes)
         self.time = data['order_time']
+        self.status = 'Preparing'
 
         self.set_region()
 
@@ -271,7 +276,8 @@ class Order:
         for region in regions.keys():
             if regions[region].poly.contains(Point(self.data['lat'], self.data['lon'])):
                 self.region = region
-
+    def get_region(self):
+        return self.region
     def calc_waiting_time(self, end):
         """
         Calc customer waiting time
