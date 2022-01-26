@@ -49,11 +49,14 @@ def order_to_node(order):
 
 pick_up_nodes, drop_off_nodes = [], []
 
-number = 10
+number = 20
 
 for i in range(number):
     create_orders(i)
 
+print('Order 0 was placed from location ', orders[0].node,' which lies in region ', orders[0].region, ' at ', orders[0].time, ' and contains ', orders[0].amount, ' ', orders[0].food_type,
+      '. It was assigned to restaurant nr. ', orders[0].restaurant, ' and is expected to be ready at ', orders[0].window[0])
+#pprint(vars(orders[0]))
 
 date = datetime.now().date()
 initialize_vehicles(date)
@@ -65,20 +68,16 @@ for i in range(len(orders)):
     pick_up_nodes.append(pick)
     drop_off_nodes.append(drop)
     #print(pick.order.time)
-    assign_order(pick, drop, orders[i].time, mode='time')
+    #print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
+    #      orders[i].time, ' and contains ', orders[i].amount, ' ', orders[i].food_type,
+    #      '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
+    #      orders[i].window[0])
+    #assign_order(pick, drop, orders[i].time, mode='time')
 
-#region_fleet = regions[1].get_vehicles()
 
-#print((region_fleet[0].get_shift_end() - pick_up_nodes[0].order.time + timedelta(minutes = region_fleet[0].get_empty())).total_seconds()/60)
-#pprint(vars(regions[6].get_vehicles()[4]))
+#pprint(vars(regions[1].get_vehicles()[2]))
 """Mode can either be time or cost, depending on optimization focus"""
-#for i in range(1, 8):
-    #print('Region ', i,' Overview ',regions[i].evaluation)
 
-
-
-
-#print(dist(veh.route[1], veh.route[2]))
 
 
 
