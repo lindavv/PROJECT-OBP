@@ -67,7 +67,7 @@ class Restaurant:
 
             # order can start no earlier than both order time and restaurant opening time
             # start_time below is the minimal starting time of the order
-            if order.time.hour <= opening_time:
+            if order.time.hour < opening_time:
                 start_time = order.time.replace(hour=opening_time, minute=0, second=0)
             else:
                 start_time = order.time
