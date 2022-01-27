@@ -236,7 +236,7 @@ def update_order_waiting_time(order, end):
 
     # set customer waiting time in minutes
     order.wait = difference.total_seconds() / 60
-    print(order.id, order.amount, start, end, order.wait, order.region)
+    print('..........Order ',order.id, 'of region ', order.region,' was prepared at ', start,' and was delivered at ', end,'. The total waiting time was ', order.wait)
 
 
 def update_order_status(type, order):

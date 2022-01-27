@@ -54,28 +54,33 @@ number = 20
 for i in range(number):
     create_orders(i)
 
-print('Order 0 was placed from location ', orders[0].node,' which lies in region ', orders[0].region, ' at ', orders[0].time, ' and contains ', orders[0].amount, ' ', orders[0].food_type,
-      '. It was assigned to restaurant nr. ', orders[0].restaurant, ' and is expected to be ready at ', orders[0].window[0])
-#pprint(vars(orders[0]))
 
 date = datetime.now().date()
-initialize_vehicles(date)
-
-
+mode = 'minvehicle' #or 'mintime'
+initialize_vehicles(date, mode)
+print(len(regions[1].get_vehicles()))
+pprint(vars(regions[1].get_vehicles()[0]))
+change_vehicle_number(1,-1,1,datetime.now())
+print(len(regions[1].get_vehicles()))
+pprint(vars(regions[1].get_vehicles()[0]))
 
 for i in range(len(orders)):
     pick, drop = order_to_node(orders[i])
     pick_up_nodes.append(pick)
     drop_off_nodes.append(drop)
     #print(pick.order.time)
+    #print('----------------------------------------------------------------------------------------------------------')
     #print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
-    #      orders[i].time, ' and contains ', orders[i].amount, ' ', orders[i].food_type,
+    #      orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
     #      '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
     #      orders[i].window[0])
     #assign_order(pick, drop, orders[i].time, mode='time')
 
-
+#print('----------------------------------------------------------------------------------------------------------')
+#print('Check out vehicle 2 of region 1, to see how the order is handled in the vehicle')
 #pprint(vars(regions[1].get_vehicles()[2]))
+#print('Finally see the performance measures of region 6')
+#print(regions[6].get_evaluation())
 """Mode can either be time or cost, depending on optimization focus"""
 
 

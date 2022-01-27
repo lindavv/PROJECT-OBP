@@ -14,7 +14,7 @@ from classes.region import update_region
 
 class Vehicle:
 
-    def __init__(self, region, shift_start, shift_end, max_cap = 20, highspeed=1):
+    def __init__(self, region, shift, shift_start, shift_end, max_cap = 20, highspeed=1):
 
         self.region = region  # Index key in dictionary of regions (1 to 7)
         self.highspeed = highspeed     # highspeed roads
@@ -25,6 +25,7 @@ class Vehicle:
         self.wait = [0]
         self.arrival = [shift_start]
         self.maxshift = [180]
+        self.shift = shift                  #Either shift 1 or 2
         self.shift_start = shift_start
         self.shift_end = shift_end
         self.empty = 0                          #time in minutes until vehicle is empty
@@ -58,12 +59,17 @@ class Vehicle:
     def get_empty(self):
         return self.empty
 
+    def get_shift(self):
+        return self.shift
+
     def get_shift_start(self):
         return self.shift_start
 
     def get_shift_end(self):
         return self.shift_end
 
+    def set_shift_end(self, end):
+        self.shift_end = end
     def set_depot(self, region, shift_start):
         depot = Route_node(0, 0, 0)
         depot.set_location(regions[region].depot)
