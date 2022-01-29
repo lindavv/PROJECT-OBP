@@ -161,7 +161,8 @@ class Vehicle:
             return False
 
 
-    def find_best_position(self, n_pick, n_drop):
+    def find_best_position(self, n_pick, n_drop, mode):
+
         # This function is given a vehicle and two nodes and calculates where to put them best
         if len(self.route) <= 1:
             bestroute = copy.deepcopy(self)
@@ -173,42 +174,118 @@ class Vehicle:
         else:
             # First best position for pick up node
             # Check all route possibilities
-            node = n_pick
-            bestrouteval_pick = -10000
-            for i in range(1, len(self.route)):
-                tempv = copy.deepcopy(self)
-                if self.check_insertion(node, i):
-                    tempv.insert(node, i)
-                    p = tempv.route_value()
-                    if p > bestrouteval_pick:
-                        bestrouteval_pick = p
-                        earliest_arrival = tempv.arrival[i + 1]
-                        bestroute_pick = tempv
-                        behind = i
-                    elif p == bestrouteval_pick:
-                        if tempv.arrival[i + 1] < earliest_arrival:
+            if mode == 'time':
+                node = n_pick
+                bestrouteval_pick = -10000
+                for i in range(1, len(self.route)):
+                    tempv = copy.deepcopy(self)
+                    if self.check_insertion(node, i):
+                        tempv.insert(node, i)
+                        p = tempv.route_value()
+                        if p > bestrouteval_pick:
+                            bestrouteval_pick = p
                             earliest_arrival = tempv.arrival[i + 1]
                             bestroute_pick = tempv
                             behind = i
-            # Now find drop position after pick_node
-            if behind == len(bestroute_pick.route) - 1:
-                bestroute_pick.append_node(n_drop)
-            else:
-                bestrouteval = -10000
-                for j in range(behind + 1, len(bestroute_pick.route)):
-                    tempv = copy.deepcopy(bestroute_pick)
-                    tempv.insert(n_drop, j)
-                    p = tempv.route_value()
-                    if p > bestrouteval:
-                        bestrouteval = p
-                        earliest_arrival = tempv.arrival[j + 1]
-                        bestroute = tempv
-                        position = j
-                    elif p == bestrouteval:
-                        if tempv.arrival[j + 1] < earliest_arrival:
+                        elif p == bestrouteval_pick:
+                            if tempv.arrival[i + 1] < earliest_arrival:
+                                earliest_arrival = tempv.arrival[i + 1]
+                                bestroute_pick = tempv
+                                behind = i
+                # Now find drop position after pick_node
+                if behind == len(bestroute_pick.route) - 1:
+                    bestroute_pick.append_node(n_drop)
+                else:
+                    bestrouteval = -10000
+                    for j in range(behind + 1, len(bestroute_pick.route)):
+                        tempv = copy.deepcopy(bestroute_pick)
+                        tempv.insert(n_drop, j)
+                        p = tempv.route_value()
+                        if p > bestrouteval:
+                            bestrouteval = p
                             earliest_arrival = tempv.arrival[j + 1]
                             bestroute = tempv
                             position = j
+                        elif p == bestrouteval:
+                            if tempv.arrival[j + 1] < earliest_arrival:
+                                earliest_arrival = tempv.arrival[j + 1]
+                                bestroute = tempv
+                                position = j
+            elif mode == 'cost':
+                node = n_pick
+                bestrouteval_pick = 10000
+                for i in range(1, len(self.route)):
+                    tempv = copy.deepcopy(self)
+                    if self.check_insertion(node, i):
+                        tempv.insert(node, i)
+                        p = tempv.route_value_km()
+                        if p < bestrouteval_pick:
+                            bestrouteval_pick = p
+                            earliest_arrival = tempv.arrival[i + 1]
+                            bestroute_pick = tempv
+                            behind = i
+                        elif p == bestrouteval_pick:
+                            if tempv.arrival[i + 1] < earliest_arrival:
+                                earliest_arrival = tempv.arrival[i + 1]
+                                bestroute_pick = tempv
+                                behind = i
+                # Now find drop position after pick_node
+                if behind == len(bestroute_pick.route) - 1:
+                    bestroute_pick.append_node(n_drop)
+                else:
+                    bestrouteval = 10000
+                    for j in range(behind + 1, len(bestroute_pick.route)):
+                        tempv = copy.deepcopy(bestroute_pick)
+                        tempv.insert(n_drop, j)
+                        p = tempv.route_value_km()
+                        if p < bestrouteval:
+                            bestrouteval = p
+                            earliest_arrival = tempv.arrival[j + 1]
+                            bestroute = tempv
+                            position = j
+                        elif p == bestrouteval:
+                            if tempv.arrival[j + 1] < earliest_arrival:
+                                earliest_arrival = tempv.arrival[j + 1]
+                                bestroute = tempv
+                                position = j
+
+            elif mode == 'mix':
+                node = n_pick
+                bestrouteval_pick = 10000
+                for i in range(1, len(self.route)):
+                    tempv = copy.deepcopy(self)
+                    if self.check_insertion(node, i):
+                        tempv.insert(node, i)
+                        p = tempv.route_evaluation_trade_off()
+                        if p < bestrouteval_pick:
+                            bestrouteval_pick = p
+                            earliest_arrival = tempv.arrival[i + 1]
+                            bestroute_pick = tempv
+                            behind = i
+                        elif p == bestrouteval_pick:
+                            if tempv.arrival[i + 1] < earliest_arrival:
+                                earliest_arrival = tempv.arrival[i + 1]
+                                bestroute_pick = tempv
+                                behind = i
+                # Now find drop position after pick_node
+                if behind == len(bestroute_pick.route) - 1:
+                    bestroute_pick.append_node(n_drop)
+                else:
+                    bestrouteval = 10000
+                    for j in range(behind + 1, len(bestroute_pick.route)):
+                        tempv = copy.deepcopy(bestroute_pick)
+                        tempv.insert(n_drop, j)
+                        p = tempv.route_evaluation_trade_off()
+                        if p < bestrouteval:
+                            bestrouteval = p
+                            earliest_arrival = tempv.arrival[j + 1]
+                            bestroute = tempv
+                            position = j
+                        elif p == bestrouteval:
+                            if tempv.arrival[j + 1] < earliest_arrival:
+                                earliest_arrival = tempv.arrival[j + 1]
+                                bestroute = tempv
+                                position = j
         solution = {'Route': bestroute, 'Arrival': earliest_arrival, 'position in queue': position, 'cap':self.cap}
         return solution
 
@@ -265,6 +342,10 @@ class Vehicle:
     def route_value_km(self):
         return sum(self.kms)
 
+    def route_evaluation_trade_off(self):
+        delay = [x for x in self.maxshift if x < 0]
+        p = -sum(delay)/5+sum(self.kms)
+        return p
 
 def assign_order(n_pick, n_drop, order_time, mode = 'time'):
     region = n_pick.order.get_region()
@@ -288,7 +369,7 @@ def find_best_vehicle(n_pick, n_drop, region_fleet, mode):
         for i in range(len(region_fleet)):
             time_available = (region_fleet[i].get_shift_end() - n_pick.order.time + timedelta(minutes = region_fleet[i].get_empty())).total_seconds()/60
             if time_available > 15: #Only consider vehicle if it would otherwise be empty for the last 15 minutes of shift
-                current = region_fleet[i].find_best_position(n_pick, n_drop)
+                current = region_fleet[i].find_best_position(n_pick, n_drop,'time')
                 rv = current['Route'].route_value()
                 if rv > bestrouteval:
                     vehicle_info = current
@@ -299,11 +380,25 @@ def find_best_vehicle(n_pick, n_drop, region_fleet, mode):
                         vehicle_info = current
                         bestrouteval = rv
                         vehicle_id = i
-    else:
+    elif mode == 'cost':
         bestrouteval = 10000
         for i in range(len(region_fleet)):
-            current = region_fleet[i].find_best_position(n_pick, n_drop)
-            rv = current['Route'].route_value()
+            current = region_fleet[i].find_best_position(n_pick, n_drop,'cost')
+            rv = current['Route'].route_value_km()
+            if rv < bestrouteval:
+                vehicle_info = current
+                bestrouteval = rv
+                vehicle_id = i
+            elif rv == bestrouteval:
+                if current['Arrival'] < vehicle_info['Arrival']:
+                    vehicle_info = current
+                    bestrouteval = rv
+                    vehicle_id = i
+    elif 'mix':#best optimizer, trade off between other two
+        bestrouteval = 10000
+        for i in range(len(region_fleet)):
+            current = region_fleet[i].find_best_position(n_pick, n_drop, 'mix')
+            rv = current['Route'].route_evaluation_trade_off()
             if rv < bestrouteval:
                 vehicle_info = current
                 bestrouteval = rv
