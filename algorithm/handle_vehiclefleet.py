@@ -60,7 +60,7 @@ def initialize_vehicles(day, mode = 'minvehicle'):
         amount = read_vehicleamount(days[weekd], i, mode)
         for j in range(amount[0]):
             fleet.append(Vehicle(i, 1, Shift1[0], Shift1[1]))
-        for j in range(amount[1]-amount[0]):
+        for j in range(int(amount[1])-int(amount[0])):
             fleet.append(Vehicle(i, 2, Shift2[0], Shift2[1]))
         regions[i].set_vehicles(fleet)
 

@@ -354,16 +354,21 @@ def assign_order(n_pick, n_drop, order_time, mode = 'time'):
         i.update_vehicle(order_time)
     assign = find_best_vehicle(n_pick, n_drop, region_fleet, mode)
     # Information will be returned to GUI
-    region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
-    region_fleet[assign['Vehicle_id']].update_vehicle(order_time)
-    #print(assign['Vehicle_info']['cap'])
-    print('Order ', n_drop.order.id, 'in Region ', region ,' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
-          assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
-          'stations before.')
+    if len(assign['Vehicle_info'])>0:
+        region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
+        region_fleet[assign['Vehicle_id']].update_vehicle(order_time)
+        #print(assign['Vehicle_info']['cap'])
+        print('Order ', n_drop.order.id, 'in Region ', region ,' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
+              assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
+              'stations before.')
+    else:
+        print('order declined')
     return region_fleet
 
 
 def find_best_vehicle(n_pick, n_drop, region_fleet, mode):
+    vehicle_info = []
+    vehicle_id = -1
     if mode == 'time':
         bestrouteval = -10000
         for i in range(len(region_fleet)):

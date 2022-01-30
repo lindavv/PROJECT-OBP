@@ -1,3 +1,5 @@
+import time
+
 from algorithm.handle_vehiclefleet import initialize_vehicles
 from algorithm.tracking_orders import create_orders, orders, order_to_node
 from classes.region import regions
@@ -22,12 +24,13 @@ def read_df_of_day2(date):
     return orders_df
 
 
-
+start = time.perf_counter()
 date = datetime.now().date()
 orders_df = read_df_of_day2(date)
-number = 10
-for i in range(number):
+number = 20#len(orders_df)
+for i in range(len(orders_df)-50,len(orders_df)):
     create_orders(i,orders_df)
+print('Time for creation of orders: ', (time.perf_counter()-start)/60)
 
 
 results = np.zeros((6,64))
@@ -38,10 +41,10 @@ for j in range(3):
     for i in range(len(orders)):
         pick, drop = order_to_node(orders[i])
         #print('----------------------------------------------------------------------------------------------------------')
-        print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
-              orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
-              '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
-              orders[i].window[0])
+        #print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
+        #      orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
+        #      '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
+        #      orders[i].window[0])
         assign_order(pick, drop, orders[i].time, mode=modes[j])
     for r in range(1,8):
         #update region info
@@ -69,10 +72,10 @@ for j in range(3):
     for i in range(len(orders)):
         pick, drop = order_to_node(orders[i])
         #print('----------------------------------------------------------------------------------------------------------')
-        print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
-              orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
-              '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
-              orders[i].window[0])
+        #print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
+        #      orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
+        #      '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
+        #      orders[i].window[0])
         assign_order(pick, drop, orders[i].time, mode=modes[j])
     for r in range(1,8):
         #update region info
