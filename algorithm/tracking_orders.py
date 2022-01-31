@@ -4,10 +4,11 @@ orders = {}
 
 from algorithm.handle_vehiclefleet import *
 from classes.vehicle import assign_order
+import pandas as pd
 
-#root = os.getcwd() + '/data/orders/orders_21-01-0'+ str(7) + '.csv'
-#orders_df = pd.read_csv(root, sep=' ', index_col = 0)
-#orders_df['order_time'] = pd.to_datetime(orders_df['order_time'])
+root = os.getcwd() + '/data/orders/orders_21-01-0'+ str(7) + '.csv'
+orders_df = pd.read_csv(root, sep=' ', index_col = 0)
+orders_df['order_time'] = pd.to_datetime(orders_df['order_time'])
 
 #row = orders_df.loc[0]
 def read_df_of_day(date):
@@ -22,7 +23,7 @@ def read_df_of_day(date):
 
 
 
-def create_orders(df_index,orders_df):
+def create_orders(orders, df_index,orders_df):
     row = orders_df.loc[df_index]
     ord = []
     for food in row[3:].to_frame().itertuples():
@@ -31,19 +32,8 @@ def create_orders(df_index,orders_df):
             order = Order(id, food[1], food[0][:-7], row.copy())
             orders[id] = order
             ord.append(order)
-    return ord
+    return orders
 
-
-
-orders = {}
-
-
-def order_to_node2(order):
-    # make nodes
-    pick = Route_node2(order, 0)
-    drop = Route_node2(order, 1)
-
-    return pick, drop
 
 def order_to_node(order):
     # make nodes
@@ -56,39 +46,51 @@ def order_to_node(order):
 
     return pick, drop
 
+def dummy_simulation():
+    orders = {}
+    pick_up_nodes, drop_off_nodes = [], []
+
+    number = 4
+    #date = datetime.now().date()
+    #orders_df = read_df_of_day(date)
+    for i in range(number):
+        orders = create_orders(orders, i,orders_df)
+
+    for i in range(len(orders)):
+        pick, drop = order_to_node(orders[i])
+        pick_up_nodes.append(pick)
+        drop_off_nodes.append(drop)
+        # print(pick.order.time)
+        # print('----------------------------------------------------------------------------------------------------------')
+        print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region,
+              ' at ',
+              orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
+              '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
+              orders[i].window[0])
+        assign_order(pick, drop, orders[i].time, mode='time')
+
+def dummy2(j):
+    orders = {}
+    pick_up_nodes, drop_off_nodes = [], []
 
 
+    # date = datetime.now().date()
+    # orders_df = read_df_of_day(date)
 
+    #orders = create_orders(orders, i, orders_df)
 
-#pick_up_nodes, drop_off_nodes = [], []
-
-#number = 20
-#date = datetime.now().date()
-#orders_df = read_df_of_day(date)
-#for i in range(number):
-#    create_orders(i,orders_df)
-
-
-
-#mode = 'minvehicle' #or 'mintime'
-#initialize_vehicles(date, mode)
-#print(len(regions[1].get_vehicles()))
-#pprint(vars(regions[1].get_vehicles()[0]))
-#change_vehicle_number(1,-1,1,datetime.now())
-#print(len(regions[1].get_vehicles()))
-#pprint(vars(regions[1].get_vehicles()[0]))
-
-for i in range(len(orders)):
-    pick, drop = order_to_node(orders[i])
-    pick_up_nodes.append(pick)
-    drop_off_nodes.append(drop)
-    #print(pick.order.time)
-    #print('----------------------------------------------------------------------------------------------------------')
-    print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region, ' at ',
-          orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
-          '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
-          orders[i].window[0])
-    assign_order(pick, drop, orders[i].time, mode='time')
+    for i in range(len(orders)):
+        pick, drop = order_to_node(orders[i])
+        pick_up_nodes.append(pick)
+        drop_off_nodes.append(drop)
+        # print(pick.order.time)
+        # print('----------------------------------------------------------------------------------------------------------')
+        print('Order', i, 'was placed from location ', orders[i].node, ' which lies in region ', orders[i].region,
+              ' at ',
+              orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
+              '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
+              orders[i].window[0])
+        assign_order(pick, drop, orders[i].time, mode='time')
 
 #print('----------------------------------------------------------------------------------------------------------')
 #print('Check out vehicle 2 of region 1, to see how the order is handled in the vehicle')
@@ -96,6 +98,7 @@ for i in range(len(orders)):
 #print('Finally see the performance measures of region 6')
 #print(regions[6].get_evaluation())
 """Mode can either be time or cost, depending on optimization focus"""
+
 
 
 
