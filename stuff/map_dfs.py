@@ -14,7 +14,7 @@ Edge = namedtuple("edge", ["start", "end", "directions", "time", "distance"])
 #os.chdir('..')
 path_parent = os.path.dirname(os. getcwd())
 os.chdir(path_parent)
-#os.chdir('/PROJECT-OBP')
+os.chdir('PROJECT-OBP')
 path = os.getcwd()
 
 
