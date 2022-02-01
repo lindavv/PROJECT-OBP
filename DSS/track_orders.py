@@ -51,7 +51,7 @@ def create_tracking_page(canvas, images, stats):
         text='Track orders',
         fill="#1D2129",
         #font=("OpenSansRoman-Regular", int(20.0))
-        font = ("Tahoma", 20)
+        font = ("Tahoma", 17)
     )
     tracking_objects.append(title)
 

@@ -241,10 +241,12 @@ def update_order_waiting_time(order, end):
 
 def update_order_status(type, order):
     if type == 0:
-        order.status = 'on the way'
+        order.status = 'On the way'
     else:
-        order.status = 'delivered'
+        order.status = 'Delivered'
     print(order.id, order.amount, start, end, order.status, order.region)
+
+
 class Order:
     """ First draft for order class, just to test restaurant functions """
 
