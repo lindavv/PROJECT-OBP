@@ -35,6 +35,19 @@ def create_orders(orders, df_index,orders_df):
     return orders
 
 
+orders = {}
+
+def create_orders_testing(df_index,orders_df):
+    row = orders_df.loc[df_index]
+    ord = []
+    for food in row[3:].to_frame().itertuples():
+        if food[1] > 0:
+            id = len(orders)
+            order = Order(id, food[1], food[0][:-7], row.copy())
+            orders[id] = order
+            ord.append(order)
+    return ord
+
 def order_to_node(order):
     # make nodes
     pick = Route_node(restaurants[order.restaurant].node, order.amount, order.time, order)
@@ -43,7 +56,6 @@ def order_to_node(order):
     drop.set_time_window(order.window[0], order.window[1])
     pick.set_type(0)
     drop.set_type(1)
-
     return pick, drop
 
 def dummy_simulation():
