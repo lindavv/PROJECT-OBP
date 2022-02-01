@@ -276,6 +276,11 @@ class Order:
         for region in regions.keys():
             if regions[region].poly.contains(Point(self.data['lat'], self.data['lon'])):
                 self.region = region
+
+    #def set_date(self, date):
+     #   self.time.date() = date
+
+
     def get_region(self):
         return self.region
     def calc_waiting_time(self, end):

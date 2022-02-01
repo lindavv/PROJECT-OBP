@@ -65,7 +65,17 @@ class Region:
             if n>1:
                 busy_num+=1
         self.evaluation['Vehicles busy'] = busy_num
-        self.evaluation['Avg. time until free'] = busy_time/busy_num
+        if busy_num >0:
+            self.evaluation['Avg. time until free'] = busy_time/busy_num
+        else:
+            self.evaluation['Avg. time until free'] = 0
+
+    def clear_evaluation(self):
+        self.evaluation = {'Orders delivered':0, 'Num_delayed_orders':0, 'Percentage delayed orders':0,
+                           'Total delay time':0, 'Avg. delay': 0,
+                           'Total waiting time':0, 'Avg. waiting time':0,
+                           'kms driven':0,
+                           'Vehicles busy':0, 'Avg. time until free':0}
 
 
 

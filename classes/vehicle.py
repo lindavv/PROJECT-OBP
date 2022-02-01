@@ -76,6 +76,40 @@ class Vehicle:
         depot.set_time_window(shift_start, shift_start + timedelta(hours=4))
         return depot
 
+
+    def empty_vehicle(self):
+        """Drop all nodes at end of night"""
+        for i in range(len(self.route)):
+            idx = 0
+            waiting_time = 0
+            delay = 0
+            ord = self.route[idx].order
+            type = self.route[idx].type_
+            #update_order_status(type, ord)
+            if self.route[idx].type_ == 1:
+
+                # only do cases where we haven't calculated waiting time before (to avoid bug)
+                #if ord.wait == 0:
+                update_order_waiting_time(ord, self.arrival[idx])
+                waiting_time = (self.arrival[idx]-ord.window[0]).total_seconds()/60
+                delay = max(0, (self.arrival[idx]-ord.window[1]).total_seconds()/60)
+            #Update kms driven for vehicle
+            if len(self.kms)>0:
+                self.kms_total = self.kms_total+self.kms[0]
+                addkms = self.kms[0]
+                del self.kms[idx]
+            else:
+                addkms = 0
+            #Update region
+            update_region(self.region, self.route[idx].type_, addkms, waiting_time, delay)
+            # dropping nodes from vehicle
+            del self.route[idx]
+            del self.wait[idx]
+            del self.arrival[idx]
+            del self.maxshift[idx]
+            del self.cap[idx]
+
+
     def drop_node(self, idx):
         """ Drop nodes when vehicle has passed these (based on time) """
 
@@ -83,7 +117,6 @@ class Vehicle:
         waiting_time = 0
         delay = 0
         ord = self.route[idx].order
-        type = self.route[idx].type_
         #update_order_status(type, ord)
         if self.route[idx].type_ == 1:
 
@@ -176,13 +209,13 @@ class Vehicle:
             # Check all route possibilities
             if mode == 'time':
                 node = n_pick
-                bestrouteval_pick = -10000
+                bestrouteval_pick = 10000
                 for i in range(1, len(self.route)):
                     tempv = copy.deepcopy(self)
                     if self.check_insertion(node, i):
                         tempv.insert(node, i)
                         p = tempv.route_value()
-                        if p > bestrouteval_pick:
+                        if p < bestrouteval_pick:
                             bestrouteval_pick = p
                             earliest_arrival = tempv.arrival[i + 1]
                             bestroute_pick = tempv
@@ -335,8 +368,12 @@ class Vehicle:
 
 
     def route_value(self):
-        delay = [x for x in self.maxshift if x < 0]
-        p = sum(delay) / 10
+        #delay = [x for x in self.maxshift if x < 0]
+        #p = -sum(delay)
+        p = 0
+        for i in range(len(self.route)):
+            p += (self.arrival[i] - self.route[i].get_time_window()[0]).total_seconds()/60
+            #p+= max(0,(self.arrival[i]-self.route[i].get_time_window()[1]).total_seconds()/60)
         return p
 
     def route_value_km(self):
@@ -347,7 +384,7 @@ class Vehicle:
         p = -sum(delay)/5+sum(self.kms)
         return p
 
-def assign_order(n_pick, n_drop, order_time, mode = 'time'):
+def assign_order(n_pick, n_drop, order_time, mode):
     region = n_pick.order.get_region()
     region_fleet = regions[region].get_vehicles()
     for i in region_fleet:
@@ -370,13 +407,13 @@ def find_best_vehicle(n_pick, n_drop, region_fleet, mode):
     vehicle_info = []
     vehicle_id = -1
     if mode == 'time':
-        bestrouteval = -10000
+        bestrouteval = 10000
         for i in range(len(region_fleet)):
-            time_available = (region_fleet[i].get_shift_end() - n_pick.order.time + timedelta(minutes = region_fleet[i].get_empty())).total_seconds()/60
+            time_available = ((region_fleet[i].get_shift_end()+ timedelta(minutes = 500)) - (n_pick.order.time + timedelta(minutes = region_fleet[i].get_empty()))).total_seconds()/60
             if time_available > 15: #Only consider vehicle if it would otherwise be empty for the last 15 minutes of shift
-                current = region_fleet[i].find_best_position(n_pick, n_drop,'time')
+                current = region_fleet[i].find_best_position(n_pick, n_drop, 'time')
                 rv = current['Route'].route_value()
-                if rv > bestrouteval:
+                if rv < bestrouteval:
                     vehicle_info = current
                     bestrouteval = rv
                     vehicle_id = i
@@ -388,30 +425,35 @@ def find_best_vehicle(n_pick, n_drop, region_fleet, mode):
     elif mode == 'cost':
         bestrouteval = 10000
         for i in range(len(region_fleet)):
-            current = region_fleet[i].find_best_position(n_pick, n_drop,'cost')
-            rv = current['Route'].route_value_km()
-            if rv < bestrouteval:
-                vehicle_info = current
-                bestrouteval = rv
-                vehicle_id = i
-            elif rv == bestrouteval:
-                if current['Arrival'] < vehicle_info['Arrival']:
+            time_available = ((region_fleet[i].get_shift_end() + timedelta(minutes=500)) - (
+                        n_pick.order.time + timedelta(minutes=region_fleet[i].get_empty()))).total_seconds() / 60
+            if time_available > 15: #Only consider vehicle if it would otherwise be empty for the last 15 minutes of shift
+                current = region_fleet[i].find_best_position(n_pick, n_drop, 'cost')
+                rv = current['Route'].route_value_km()
+                if rv < bestrouteval:
                     vehicle_info = current
                     bestrouteval = rv
                     vehicle_id = i
+                elif rv == bestrouteval:
+                    if current['Arrival'] < vehicle_info['Arrival']:
+                        vehicle_info = current
+                        bestrouteval = rv
+                        vehicle_id = i
     elif 'mix':#best optimizer, trade off between other two
         bestrouteval = 10000
         for i in range(len(region_fleet)):
-            current = region_fleet[i].find_best_position(n_pick, n_drop, 'mix')
-            rv = current['Route'].route_evaluation_trade_off()
-            if rv < bestrouteval:
-                vehicle_info = current
-                bestrouteval = rv
-                vehicle_id = i
-            elif rv == bestrouteval:
-                if current['Arrival'] < vehicle_info['Arrival']:
+            time_available = ((region_fleet[i].get_shift_end()+ timedelta(minutes = 500)) - (n_pick.order.time + timedelta(minutes = region_fleet[i].get_empty()))).total_seconds()/60
+            if time_available > 15: #Only consider vehicle if it would otherwise be empty for the last 15 minutes of shift
+                current = region_fleet[i].find_best_position(n_pick, n_drop, 'mix')
+                rv = current['Route'].route_evaluation_trade_off()
+                if rv < bestrouteval:
                     vehicle_info = current
                     bestrouteval = rv
                     vehicle_id = i
+                elif rv == bestrouteval:
+                    if current['Arrival'] < vehicle_info['Arrival']:
+                        vehicle_info = current
+                        bestrouteval = rv
+                        vehicle_id = i
     solution = {'Vehicle_info': vehicle_info, 'Vehicle_id': vehicle_id}
     return solution

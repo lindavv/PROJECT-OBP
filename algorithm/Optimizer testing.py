@@ -1,9 +1,9 @@
 import time
 
 from algorithm.handle_vehiclefleet import initialize_vehicles
-from algorithm.tracking_orders import create_orders, orders, order_to_node
-from classes.region import regions
-from classes.vehicle import assign_order
+from algorithm.tracking_orders import create_orders_testing, orders, order_to_node
+from classes.region import regions, Region
+from classes.vehicle import assign_order, Vehicle
 from datetime import datetime, timedelta
 import os
 import pandas as pd
@@ -14,30 +14,47 @@ from pprint import pprint
 #pick_up_nodes, drop_off_nodes = [], []
 
 
-def read_df_of_day2(date):
+def read_df_of_day2(date,shift):
     """We can read in the corresponding weekday of date in the first februar week 2021"""
     weekd = date.weekday()
     #2021-02-01 is a monday, and weekd = 0 if date is also a monday
     root = os.getcwd() + '/data/orders/orders_21-02-0' + str(1+weekd) + '.csv'
     orders_df = pd.read_csv(root, sep=' ', index_col=0)
     orders_df['order_time'] = pd.to_datetime(orders_df['order_time'])
+    print('Data frame date is ', (orders_df['order_time'][0]-timedelta(days=shift)).date())
+    for i in range(len(orders_df)):
+        orders_df['order_time'][i] = orders_df['order_time'][i]-timedelta(days=shift)
     return orders_df
 
 
 start = time.perf_counter()
-date = datetime.now().date()
-orders_df = read_df_of_day2(date)
+date = datetime.now().date()-timedelta(days=1)
+print('Target date is ', date)
+orders_df = read_df_of_day2(date, 1)
 number = 20#len(orders_df)
 for i in range(len(orders_df)-50,len(orders_df)):
-    create_orders(i,orders_df)
-print('Time for creation of orders: ', (time.perf_counter()-start)/60)
+    create_orders_testing(i,orders_df)
 
+for i in range(len(orders)):
+    print(orders[i].time)
+    #orders[i].set_date(date)
+
+print('Time for creation of orders: ', (time.perf_counter()-start)/60)
+print('There were ', len(orders), ' orders created')
 
 results = np.zeros((6,64))
 modes = ['time','cost','mix']
-initialize_vehicles(date, 'minvehicle')
+# update time to empty vehicles
+print('first order_time is: ', orders[0].time)
+empty_time = orders[len(orders) - 1].time + timedelta(hours=3)
+#print('Empty time is: ', empty_time)
 for j in range(3):
-    print('Analysis of minvehicles and routing optimizer '+modes[j])
+    print('Analysis of minvehicles and routing optimizer '+ modes[j])
+    initialize_vehicles(date, 'minvehicle')
+    #Clear evaluation of region
+    for r in range(1,8):
+        regions[r].clear_evaluation()
+
     for i in range(len(orders)):
         pick, drop = order_to_node(orders[i])
         #print('----------------------------------------------------------------------------------------------------------')
@@ -47,6 +64,9 @@ for j in range(3):
         #      orders[i].window[0])
         assign_order(pick, drop, orders[i].time, mode=modes[j])
     for r in range(1,8):
+        #update all vehicles
+        for v in regions[r].get_vehicles():
+            v.empty_vehicle()
         #update region info
         results[j, 0 + 8 * (r - 1)] = regions[r].get_evaluation()['Orders delivered']
         results[j, 1 + 8 * (r - 1)] = regions[r].get_evaluation()['Num_delayed_orders']
@@ -57,18 +77,22 @@ for j in range(3):
         results[j, 6 + 8 * (r - 1)] = regions[r].get_evaluation()['Avg. waiting time']
         results[j, 7 + 8 * (r - 1)] = regions[r].get_evaluation()['kms driven']
         #Add to whole Paris
-        results[j, 56] += regions[r].get_evaluation()['Orders delivered']
+        results[j, 56] = results[j, 56] + regions[r].get_evaluation()['Orders delivered']
         results[j, 57] += regions[r].get_evaluation()['Num_delayed_orders']
-        results[j, 58] += regions[r].get_evaluation()['Percentage delayed orders']
         results[j, 59] += regions[r].get_evaluation()['Total delay time']
-        results[j, 60] += regions[r].get_evaluation()['Avg. delay']
         results[j, 61] += regions[r].get_evaluation()['Total waiting time']
-        results[j, 62] += regions[r].get_evaluation()['Avg. waiting time']
         results[j, 63] += regions[r].get_evaluation()['kms driven']
+    results[j, 58] = results[j, 57] / results[j, 56] #percentage delayed orders
+    results[j, 60] = results[j, 59]/ results[j, 56] #avg. delay time
+    results[j, 62] = results[j, 61]/ results[j, 56] #avg. waiting time
 
-initialize_vehicles(date, 'mintime')
 for j in range(3):
-    print('Analysis of minvehicles and routing optimizer ' + modes[j])
+    print('Analysis of mintime and routing optimizer ' + modes[j])
+    initialize_vehicles(date, 'mintime')
+    #Clear evaluation of region
+    for r in range(1,8):
+        regions[r].clear_evaluation()
+
     for i in range(len(orders)):
         pick, drop = order_to_node(orders[i])
         #print('----------------------------------------------------------------------------------------------------------')
@@ -78,6 +102,9 @@ for j in range(3):
         #      orders[i].window[0])
         assign_order(pick, drop, orders[i].time, mode=modes[j])
     for r in range(1,8):
+        #update all vehicles
+        for v in regions[r].get_vehicles():
+            v.empty_vehicle()
         #update region info
         results[j+3, 0 + 8 * (r - 1)] = regions[r].get_evaluation()['Orders delivered']
         results[j+3, 1 + 8 * (r - 1)] = regions[r].get_evaluation()['Num_delayed_orders']
@@ -90,12 +117,16 @@ for j in range(3):
         #Add to whole Paris
         results[j+3, 56] += regions[r].get_evaluation()['Orders delivered']
         results[j+3, 57] += regions[r].get_evaluation()['Num_delayed_orders']
-        results[j+3, 58] += regions[r].get_evaluation()['Percentage delayed orders']
         results[j+3, 59] += regions[r].get_evaluation()['Total delay time']
-        results[j+3, 60] += regions[r].get_evaluation()['Avg. delay']
         results[j+3, 61] += regions[r].get_evaluation()['Total waiting time']
-        results[j+3, 62] += regions[r].get_evaluation()['Avg. waiting time']
         results[j+3, 63] += regions[r].get_evaluation()['kms driven']
+    results[j + 3, 58] = results[j+3, 57] / results[j+3, 56] #percentage delayed orders
+    results[j + 3, 60] = results[j+3, 59]/ results[j+3, 56] #avg. delay time
+    results[j + 3, 62] = results[j+3, 61]/ results[j+3, 56] #avg. waiting time
+
+
+for i in range(6):
+    print('Num delayed orders', results[i, 57])
 df = pd.DataFrame(data = results, index = ["minveh_time", "minveh_cost", "minveh_mix","mintime_time", "mintime_cost", "mintime_mix"], columns=['Orders delivered_R1', 'Num_delayed_orders_R1', 'Percentage delayed orders_R1',
                            'Total delay time_R1', 'Avg. delay_R1','Total waiting time_R1', 'Avg. waiting time_R1', 'kms driven_R1','Orders delivered_R2', 'Num_delayed_orders_R2', 'Percentage delayed orders_R2',
                            'Total delay time_R2', 'Avg. delay_R2','Total waiting time_R2', 'Avg. waiting time_R2', 'kms driven_R2','Orders delivered_R3', 'Num_delayed_orders_R3', 'Percentage delayed orders_R3',

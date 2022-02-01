@@ -22,10 +22,10 @@ t = t.replace(microsecond = 0)
 #read in shifts
 path = os.getcwd()
 pd.read_csv(path + '/data/restaurants.csv', delimiter = " ")
-mintime_S1_df = pd.read_csv(path + '/data/Shifts/Mintime_Shift1.csv', sep=';', index_col = 0)
-mintime_S2_df = pd.read_csv(path + '/data/Shifts/Mintime_Shift2.csv', sep=';', index_col = 0)
-minveh_S1_df = pd.read_csv(path + '/data/Shifts/Minvehicle_Shift1.csv', sep=';', index_col = 0)
-minveh_S2_df = pd.read_csv(path + '/data/Shifts/Minvehicle_Shift2.csv', sep=';', index_col = 0)
+mintime_S1_df = pd.read_csv(path + '/data/Shifts/Mintime_Shift1_2.csv', sep=';', index_col = 0)
+mintime_S2_df = pd.read_csv(path + '/data/Shifts/Mintime_Shift2_2.csv', sep=';', index_col = 0)
+minveh_S1_df = pd.read_csv(path + '/data/Shifts/Minvehicle_Shift1_HalfHour.csv', sep=';', index_col = 0)
+minveh_S2_df = pd.read_csv(path + '/data/Shifts/Minvehicle_Shift2_HalfHour.csv', sep=';', index_col = 0)
 shifts_df = pd.read_csv(path + '/data/Shifts/Shifts.csv', sep=';', index_col = 0)
 
 def read_shifts(day, weekd):

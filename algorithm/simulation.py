@@ -54,7 +54,7 @@ def orders_diff_time(orders_df,sim_time_start):
     :param sim_time_start: time of simulation start (will be the same as time of first order
     :return: in seconds the time difference between every successive incoming order. This tells us when we have to check for an incoming order again
     """
-    inc_sec = []
+    inc_sec = [0]
     for i in range(len(orders_df)-1):
         inc_sec.append((orders_df['order_time'][i+1]-orders_df['order_time'][i]).total_seconds())
     return inc_sec
@@ -79,29 +79,106 @@ def background():
     while True:
         time.sleep(5)
         print('nothing')
+
+
+class incOrder:
+    def __init__(self, time):
+        self.pickup =[]
+        self.dropoff=[]
+        #To get time in simulation
+        self.sim_time = time
+        self.timer = time
+        #self.regions = regions
+
+    def order_pop_up(self,pick,drop):
+        print('Order incoming...')
+        self.pickup.append(pick)
+        self.dropoff.append(drop)
+
+    def assign(self):
+        #for i in range(len(self.pickup)):
+        print('order with id ', self.pickup[0].order.id, ' of time ', self.pickup[0].order.time, ' was assigned.')
+        self.pickup.remove(self.pickup[0])
+        self.dropoff.remove(self.dropoff[0])
+
+    def get_time(self, speed):
+        elapsed_time = time.perf_counter() - self.timer
+        return self.sim_start + timedelta(seconds = elapsed_time*speed)
+
+    def start(self):
+        self.timer = time.perf_counter()
+
+def order_pop_up(incOrd,cond, sleepscheduele, orders_df, speed):
+    for i in range(len(sleepscheduele)):
+        order = create_orders(i, orders_df)
+        for j in range(len(order)):
+            pick, drop = order_to_node(order[j])
+            with cond:
+                incOrd.order_pop_up(pick,drop)
+                cond.notify()
+        #print(incOrd.pickup)
+        print('sleep for ', sleepscheduele[i]/speed, ' seconds')
+        time.sleep(sleepscheduele[i]/speed)
+
+def assign(incOrd,cond):
+    cond.acquire()
+    while True:
+        try:
+            incOrd.assign()
+            print(incOrd.pickup)
+        except:
+            print('no order')
+            val = cond.wait(20)
+            if val:
+                print('assigning order')
+                #incOrd.assign()
+                continue
+            else:
+                print('waiting timeout...')
+                break
+
 date = datetime.now().date()
 orders_df = read_df_of_day(date)                                                        #Reads df of corresponding weekday, but saves the times with current date
 first_ord_time = str(orders_df['order_time'][0].time())
 sim_start = datetime.strptime(str(date) + ' ' + first_ord_time, '%Y-%m-%d %H:%M:%S')
 sim_sec = orders_diff_time(orders_df,sim_start)
-#print(sim_sec[0:5])
-testsecs = sim_sec[0:8]
-testsecs2 = sim_sec[8:12]
+testsecs = sim_sec[0:5]
 
-t = sim_time(sim_start)
-t.start()
+speed=100
+incOrd = incOrder(sim_start)
+incOrd.start() #Start timer of simulation
+print(sim_start)
+#Condition object
+cond = threading.Condition()
+#producer thread
+p = threading.Thread(target=order_pop_up, args=(incOrd, cond, testsecs, orders_df,speed,))
+p.start()
+#Consumer thread
+c=threading.Thread(target=assign, args=(incOrd, cond,))
+c.start()
+
+#p.join()
+#c.join()
+
+
+#print(sim_sec[0:5])
+#testsecs = sim_sec[0:8]
+#testsecs2 = sim_sec[8:12]
+
+#t = sim_time(sim_start)
+#t.start()
 #print(sim_start)
-threading1 = threading.Thread(target=background)
-threading1.daemon = True
-threading1.start()
+#threading1 = threading.Thread(target=background)
+#threading1.daemon = True
+#threading1.start()
 #simulation(t, testsecs,100, orders_df,0)
-while True:
-    if input() == '1':
-        #sys.exit()
-        time_now = t.get_time(100)
-        simulation(t,testsecs2,100,orders_df,0)
-    else:
-        print('Noooo')
+#while True:
+#    if input() == '1':
+#        #sys.exit()
+#        time_now = t.get_time(100)
+#        simulation(t,testsecs2,100,orders_df,0)
+#    else:
+#        print('Noooo')
 #    dropcount = 0
 #    for i in range(len(orders_df)):
 #        if orders_df['order_time'][i] < time_now:
@@ -126,7 +203,7 @@ while True:
 
 #while orders_df['order_time'][0] < time_now:
 
-print(orders_df.iloc[0])
+#print(orders_df.iloc[0])
 #orders_df = orders_df.drop(orders_df.index[0])
 #print(orders_df.iloc[0])
 #print(t.get_time(100))
