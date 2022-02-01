@@ -31,7 +31,7 @@ def create_home_page(canvas, images, stats):
             label.place(x=330+206*i, y= 145)
         else:
             label = Label(canvas, text=str(round(stats[i], 2)), bg='white', font=('Arial', 13))
-            label.place(x=325+206*i, y=142)
+            label.place(x=318+206*i, y=140)
 
         home_objects.append(label)
 
@@ -61,7 +61,7 @@ def create_home_page(canvas, images, stats):
         anchor="nw",
         text='Home',
         fill="#1D2129",
-        font=("OpenSansRoman-Regular", int(20.0))
+        font=("OpenSansRoman-Regular", int(17.0))
     )
 
     home_objects.append(title)

@@ -39,13 +39,13 @@ def order_to_node(order):
 
 
 
-def dummy_simulation2(orders, number):
+def dummy_simulation2(orders, number, rownr):
     pick_up_nodes, drop_off_nodes = [], []
     #date = datetime.now().date()
     #orders_df = read_df_of_day(date)
 
     for j in range(number):
-        orders, n = create_orders(orders, j, orders_df)
+        orders, n = create_orders(orders, rownr+j, orders_df)
 
         for i in range(len(orders)-n, len(orders)):
             pick, drop = order_to_node(orders[i])

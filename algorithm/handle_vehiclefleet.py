@@ -67,8 +67,8 @@ def initialize_vehicles(day, mode = 'minvehicle'):
 
 date = datetime.now().date()
 initialize_vehicles(date)
-print(regions[1].get_vehicles())
-print(datetime.now().date())
+#print(regions[1].get_vehicles())
+#print(datetime.now().date())
 
 def change_vehicle_number(region, amount, shift, time_now):
     """
