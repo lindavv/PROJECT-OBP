@@ -32,7 +32,7 @@ date = datetime.now().date()-timedelta(days=1)
 print('Target date is ', date)
 orders_df = read_df_of_day2(date, 1)
 number = 20#len(orders_df)
-for i in range(len(orders_df)-50,len(orders_df)):
+for i in range(len(orders_df)):
     create_orders_testing(i,orders_df)
 
 for i in range(len(orders)):
