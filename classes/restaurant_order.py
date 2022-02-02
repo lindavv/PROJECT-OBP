@@ -234,17 +234,33 @@ def update_order_waiting_time(order, end):
     start = order.window[0]
     difference = end - start
 
+    order.status = 'Delivered'
+    order.time_delivery = end
+
     # set customer waiting time in minutes
     order.wait = difference.total_seconds() / 60
     print('..........Order ',order.id, 'of region ', order.region,' was prepared at ', start,' and was delivered at ', end,'. The total waiting time was ', order.wait)
 
 
-def update_order_status(type, order):
-    if type == 0:
-        order.status = 'On the way'
+def update_order_status(type_, order):
+    if type_ == 0:
+        try:
+            order.status = 'Driving'
+        except:
+            pass
     else:
-        order.status = 'Delivered'
-    print(order.id, order.amount, start, end, order.status, order.region)
+        try:
+            order.status = 'Delivered'
+        except:
+            pass
+
+
+def update_order_status2(order, time):
+    if order.window[0] < time and order.status == 'Preparing':
+        order.status = 'Driving'
+
+
+
 
 
 class Order:
@@ -266,12 +282,15 @@ class Order:
         self.window = [False, False]
 
         self.assign_restaurant()
+        self.time_delivery = None
+        self.vehicle = None
 
 
     def assign_restaurant(self):
         self.restaurant = self.choose_restaurant()
         rest = restaurants[self.restaurant]
         rest.plan_order(self)
+        self.restaurant_location = rest.node
 
     def set_region(self):
         self.region = 0

@@ -1,19 +1,18 @@
 import os
 from pathlib import Path
 from DSS.home import *
-#from DSS.settings import *
 from DSS.graphs import *
-from DSS.track_orders import *
+from DSS.map_fig import *
 from tkinter import *
 import random
 import threading
+from algorithm.sim2 import *
+from algorithm.handle_vehiclefleet import read_vehicleamount
 
-#from algorithm.sim2 import *
+today = 'Tuesday'
+#conda env export > environment.yml
 
-writings = {
-    'date': 'Tuesday 25-01-2022      17:52',  # upper right
-    'current_page': 'Restaurants'
-}
+
 
 ####################################################################
 """Home page"""
@@ -23,13 +22,15 @@ home_stats = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0,
 
 """Settings page"""
 # settings per sector!!!!!
-settings_first_section = ['vehicle' for i in range(7)]
+settings_first_section = ['time' for i in range(7)]
 settings_fourth_section = ['cost' for i in range(7)]
 
-
-
-n_vehicles = [[random.randint(0, 30) for i in range(2)] for i in range(7)]
+n_vehicles = [read_vehicleamount(today, i+1, settings_first_section[i]) for i in range(7)]
 n_vehicles.append([sum([n_vehicles[j][0] for j in range(7)]), sum([n_vehicles[j][1] for j in range(7)])])
+
+max_veh = [read_vehicleamount(today, i+1, 'time') for i in range(7)]
+min_veh = [read_vehicleamount(today, i+1, 'cost') for i in range(7)]
+
 
 """Track orders page"""
 track_stats = [
@@ -56,6 +57,117 @@ texts = {
     4: "Routing optimization focus"
 }
 
+def track():
+    print('Track')
+
+
+
+def change_map(choices, n, canvas, tracking_objects, images):
+    for i in range(3):
+        try:
+            # remove the active order
+            choices[i][0].place_forget()
+        except:
+            pass
+        try:
+            choices[i][1].place_forget()
+        except:
+            pass
+
+    for i in range(3):
+        if i != n:
+            choices[i][1].place(x=916, y=105+157*i)
+
+    choices[n][0].place(x=916, y=105 + 157 * n)
+    canvas.delete(tracking_objects[1])
+    del(tracking_objects[1])
+
+    map = canvas.create_image(570, 330, image=images[-n-1])
+    tracking_objects.insert(1, map)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def create_tracking_page(canvas, images, stats, count_orders):
+    tracking_objects = [canvas.create_rectangle(215, 85, 1235, 610, fill="#FFFFFF", outline="")]
+
+
+    """Map"""
+    map = canvas.create_image(570, 330, image=images[-1])
+    tracking_objects.append(map)
+
+    choices = []
+
+    for j in range(3):
+        ord = orders[count_orders-j-1]
+        ord_text = "Order                             #" + str(
+            ord.id) + "\nStatus:                 " + ord.status + "\nPlaced at                     " + ord.time.strftime("%H:%M")
+        if ord.status == 'Delivered':
+            ord_text += "\nDelivered at              " + ord.time_delivery.strftime("%H:%M")
+        else:
+            ord_text += "\nEstimated delivery at  " + ord.window[1].strftime("%H:%M")
+
+        """ Blue rectangles """
+        blue_active = Button(image=images[3],
+                      text = ord_text, compound='center', borderwidth=0, highlightthickness=0, command=lambda: None, relief='flat')
+        blue_inactive = Button(image=images[2],
+                      text = ord_text, compound='center', borderwidth=0, highlightthickness=0, command=lambda j=j: change_map(choices, j, canvas, tracking_objects, images), relief='flat')
+        if j ==0:
+            blue_active.place(x=916, y=105+157*j)
+        else:
+            blue_inactive.place(x=916, y=105+157*j)
+
+
+        tracking_objects.append(blue_active)
+        tracking_objects.append(blue_inactive)
+        choices.append((blue_active, blue_inactive))
+
+
+    """
+    #User order nr input
+    # input text field
+    input_order = Text(width=15, height=10)
+    input_order.place(x=250, y=570)
+    tracking_objects.append(input_order)
+    
+    # title
+    input_title = Label(canvas, bg='#F7F8FA', text="Orders received: "+ str(len(orders)) + "\nTrack another order #", font=('Arial', 11))
+    input_title.place(x=250, y=515)
+    tracking_objects.append(input_title)
+
+    # button
+    track_button = Button(text="Track", command= lambda: track())
+    track_button.place(x=450, y=570)
+    tracking_objects.append(track_button)
+    """
+
+
+
+    title = canvas.create_text(
+        78.0,
+        22.0,
+        anchor="nw",
+        text='Track orders',
+        fill="#1D2129",
+        #font=("OpenSansRoman-Regular", int(20.0))
+        font = ("Tahoma", 17)
+    )
+    tracking_objects.append(title)
+
+    return tracking_objects
+
 
 def minus(vehicles, veh_num, i, j):
     if vehicles[j][i - 2] > 2:
@@ -63,7 +175,7 @@ def minus(vehicles, veh_num, i, j):
         vehicles[j][i - 2] -= 1
         # this modifies the GUI label accordingly
         veh_num[j][i - 2].configure(text=str(vehicles[j][i - 2]))
-        change_vehicle_number(j + 1, -1, i + 1, orders[len(orders) - 1].time)
+        change_vehicle_number(j + 1, orders, -1, i + 1, orders[len(orders) - 1].time)
 
         # change total as well
         vehicles[7][i - 2] = sum([vehicles[k][i - 2] for k in range(7)])
@@ -80,7 +192,7 @@ def plus(vehicles, veh_num, i, j):
         # this modifies the GUI label accordingly
         veh_num[j][i - 2].configure(text=str(vehicles[j][i - 2]))
 
-        change_vehicle_number(j + 1, 1, i + 1, orders[len(orders) - 1].time)
+        change_vehicle_number(j + 1, orders, 1, i + 1, orders[len(orders) - 1].time)
 
         # change total as well
         vehicles[7][i - 2] = sum([vehicles[k][i - 2] for k in range(7)])
@@ -346,7 +458,13 @@ def make_images():
     ]
 
     track_images = [
-        PhotoImage(file=relative_to_assets("map.png"))
+        PhotoImage(file=relative_to_assets("map.png")),
+        PhotoImage(file=relative_to_assets("image_3.png")),
+        PhotoImage(file=relative_to_assets("image_222.png")),
+        PhotoImage(file=relative_to_assets("image_222bold.png")),
+        PhotoImage(file=relative_to_assets("map_3.png")),
+        PhotoImage(file=relative_to_assets("map_2.png")),
+        PhotoImage(file=relative_to_assets("map_1.png"))
     ]
     return settings_images, home_images, track_images
 
@@ -374,7 +492,9 @@ class App(threading.Thread):
         self.canvas.place(x=0, y=0)
 
         self.count = 0
-        self.time = 'Tuesday 25-01-2022      17:52'
+        self.count_orders = 0
+
+        self.time = 'Thursday 03-02-2022      17:52'
         self.time_label = Label(self.canvas, text=self.time, bg='white', font=('Arial', 11))
         self.time_label.place(x=885, y=25)
 
@@ -383,7 +503,7 @@ class App(threading.Thread):
         self.current_objects = create_home_page(self.canvas, self.home_images, home_stats)
 
     def update_time_label(self):
-        label = "Tuesday 25-01-2022      " + self.time.strftime("%H:%M")
+        label = "Thursday 03-02-2022      " + self.time.strftime("%H:%M")
         self.time_label.configure(text=label)
 
     def click_sidebar_button(self, next):
@@ -406,7 +526,7 @@ class App(threading.Thread):
                                                settings_fourth_section)
         elif next == 'track':
             print('Go to track orders page')
-            new_objects = create_tracking_page(self.canvas, self.track_images, track_stats)
+            new_objects = create_tracking_page(self.canvas, self.track_images, track_stats, self.count_orders)
 
         self.current = next
         self.current_objects = new_objects
@@ -548,8 +668,8 @@ def update_home_stats(app):
 
 
 def task_start():
-    n = 1
-    dummy_simulation2(orders=orders, number=n, rownr=0)
+    n = 20
+    dummy_simulation2(orders=orders, number=n, rownr=0, modes=settings_fourth_section)
     app.count += n
     update_home_stats(app)
 
@@ -557,32 +677,53 @@ def task_start():
     app.time = orders[len(orders) - 1].time
     app.update_time_label()
 
-    make_images()
+    #make_map(orders, 2, 1)
+    #make_map(orders, 1, 2)
+    #make_map(orders, 0, 3)
+
+
+
+
+    for i in range(len(orders)):
+        if orders[i].status == 'Preparing':
+            update_order_status2(orders[i], app.time)
+
+    app.count_orders = len(orders)
+
+
+
 
 
 def task_repeat():
     # simulate m amount of new orders
     m = 3
-    dummy_simulation2(orders=orders, number=m, rownr=app.count)
+    dummy_simulation2(orders=orders, number=m, rownr=app.count, modes=settings_fourth_section)
     app.count += m
 
     # update statistics and graphs
     update_home_stats(app)
-    make_images()
+
 
     # update time
     app.time = orders[len(orders) - 1].time
     app.update_time_label()
 
+    # update order status
+    for i in range(len(orders)-m, len(orders)):
+        if orders[i].status == 'Preparing':
+            update_order_status2(orders[i], app.time)
+
+
+
     # repeat loop
-    app.window.after(10000, task_repeat)  # 20 seconds
+    app.window.after(15000, task_repeat)  # 20 seconds
 
 
 # app.window.resizable(True, True)
 
 
-#app.window.after(2000, task_start)
-#app.window.after(10000, task_repeat)
+app.window.after(2000, task_start)
+app.window.after(15000, task_repeat)
 
 app.window.mainloop()
 

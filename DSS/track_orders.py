@@ -19,8 +19,8 @@ def create_tracking_page(canvas, images, stats):
     # first
     id = 0
     write = 'Order #'+ str(stats[id]['id'])+ ' placed at ' + stats[id]['order_time'] + ' and\nis waiting at the restaurant.\nIt is expected to be delivered at ' + stats[id]['del_time']+'.'
-    label = Label(canvas, text=write, anchor='w',  bg='white', font=('Arial', 13))
-    label.place(x=950, y=200, anchor='w')
+    label = Label(canvas, text=write, anchor='nw',  bg='white', font=('Arial', 11))
+    label.place(x=950, y=200, anchor='nw')
     tracking_objects.append(label)
 
 

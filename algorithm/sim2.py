@@ -39,7 +39,7 @@ def order_to_node(order):
 
 
 
-def dummy_simulation2(orders, number, rownr, mode= 'time'):
+def dummy_simulation2(orders, number, rownr, modes):
     pick_up_nodes, drop_off_nodes = [], []
     #date = datetime.now().date()
     #orders_df = read_df_of_day(date)
@@ -57,5 +57,6 @@ def dummy_simulation2(orders, number, rownr, mode= 'time'):
                   orders[i].time, ' and contains ', orders[i].amount, ' meals of type ', orders[i].food_type,
                   '. It was assigned to restaurant nr. ', orders[i].restaurant, ' and is expected to be ready at ',
                   orders[i].window[0])
-            assign_order(pick, drop, orders[i].time, mode=mode)
+            #assign_order(pick, drop, orders[i].time, mode=modes[orders[i].region-1])
+            assign_order(pick, drop, orders, orders[i].time, mode=modes[orders[i].region - 1])
 

@@ -110,21 +110,23 @@ class Vehicle:
             del self.cap[idx]
 
 
-    def drop_node(self, idx):
+    def drop_node(self, orders, idx):
         """ Drop nodes when vehicle has passed these (based on time) """
 
         # update time the customer has been waiting!!
         waiting_time = 0
         delay = 0
         ord = self.route[idx].order
-        #update_order_status(type, ord)
+
         if self.route[idx].type_ == 1:
 
-            # only do cases where we haven't calculated waiting time before (to avoid bug)
-            #if ord.wait == 0:
+            orders[ord.id].status = 'Delivered'
+            orders[ord.id].time_delivery = self.arrival[idx]
+
             update_order_waiting_time(ord, self.arrival[idx])
             waiting_time = (self.arrival[idx]-ord.window[0]).total_seconds()/60
             delay = max(0, (self.arrival[idx]-ord.window[1]).total_seconds()/60)
+
         #Update kms driven for vehicle
         self.kms_total = self.kms_total+self.kms[0]
         #Update region
@@ -153,7 +155,7 @@ class Vehicle:
         else:
             self.cap.append(self.cap[n-1] + node.number_of_meals)
 
-    def update_vehicle(self, time_now):
+    def update_vehicle(self, orders, time_now):
         n = len(self.route)
         if n > 1:
             # find out which nodes have already been passed
@@ -167,7 +169,7 @@ class Vehicle:
                 if self.route[i].get_time_window()[0] < time_now:
                     drop += 1
             for i in range(drop - 1):
-                self.drop_node(0)
+                self.drop_node(orders, 0)
             if len(self.route) > 1:
                 self.wait[1] = max((self.route[1].get_time_window()[0] - time_now).total_seconds() / 60,
                                self.wait[1])
@@ -384,22 +386,25 @@ class Vehicle:
         p = -sum(delay)/5+sum(self.kms)
         return p
 
-def assign_order(n_pick, n_drop, order_time, mode):
+def assign_order(n_pick, n_drop, orders, order_time, mode):
     region = n_pick.order.get_region()
     region_fleet = regions[region].get_vehicles()
     for i in region_fleet:
-        i.update_vehicle(order_time)
+        i.update_vehicle(orders, order_time)
     assign = find_best_vehicle(n_pick, n_drop, region_fleet, mode)
     # Information will be returned to GUI
     if len(assign['Vehicle_info'])>0:
         region_fleet[assign['Vehicle_id']] = assign['Vehicle_info']['Route']
-        region_fleet[assign['Vehicle_id']].update_vehicle(order_time)
+        region_fleet[assign['Vehicle_id']].update_vehicle(orders, order_time)
         #print(assign['Vehicle_info']['cap'])
         print('Order ', n_drop.order.id, 'in Region ', region ,' was assigned to vehicle number', assign['Vehicle_id'], '. Estimated arrival time at Customer is',
               assign['Vehicle_info']['Arrival'], 'and there are', assign['Vehicle_info']['position in queue'],
               'stations before.')
     else:
         print('order declined')
+
+    orders[n_pick.order.id].vehicle = region_fleet[assign['Vehicle_id']]
+
     return region_fleet
 
 

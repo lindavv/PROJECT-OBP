@@ -42,15 +42,16 @@ def read_shifts(day, weekd):
 
 def read_vehicleamount(day, region, focus):
     ans = [0,0]
-    if focus == 'mintime':
+    if focus == 'time':
        ans[0] = mintime_S1_df[day][region]
        ans[1] = mintime_S2_df[day][region]
-    elif focus == 'minvehicle':
+    elif focus == 'vehicle':
         ans[0] = minveh_S1_df[day][region]
         ans[1] = minveh_S2_df[day][region]
+    #print(day, region, focus)
     return ans
 
-def initialize_vehicles(day, mode = 'minvehicle'):
+def initialize_vehicles(day, mode = 'time'):
     """Needs day as timestamp"""
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     weekd = day.weekday() #returns integer of weekday 0-6 Mon-Sun
@@ -70,7 +71,7 @@ initialize_vehicles(date)
 #print(regions[1].get_vehicles())
 #print(datetime.now().date())
 
-def change_vehicle_number(region, amount, shift, time_now):
+def change_vehicle_number(region, orders, amount, shift, time_now):
     """
     Amount should either be 1 or -1
     shift is either 1 or 2, depending on the shift we want to change the vehicles in
@@ -97,25 +98,23 @@ def change_vehicle_number(region, amount, shift, time_now):
         if amount == 1:
             regions[region].get_vehicles().append(Vehicle(region, shift, shift_start,shift_end))
         elif amount == -1:
-            drop_vehicle(region, shift, time_now)
+            drop_vehicle(region, orders, shift, time_now)
         else:
             print('Amount not valid')
 
 
-def drop_vehicle(region, shift, time_now):
+def drop_vehicle(region, orders, shift, time_now):
     empty = []              #tracks minutes until vehicles of given shift are empty
     idx = []
     for i in range(len(regions[region].get_vehicles())):
-        regions[region].get_vehicles()[i].update_vehicle(time_now)
+        regions[region].get_vehicles()[i].update_vehicle(orders, time_now)
         if regions[region].get_vehicles()[i].get_shift() == shift:
             idx.append(i)
             empty.append(regions[region].get_vehicles()[i].get_empty())
-    minval = min(empty)
-    dropidx = empty.index(minval)
-    shift_end = time_now + timedelta(minutes = minval)
-    regions[region].get_vehicles()[idx[dropidx]].set_shift_end(shift_end)
-#for i in range(1, 8):
-#    fleet = []
-#    for j in range(50):
-#        fleet.append(Vehicle(i, t,1))
-#    regions[i].set_vehicles(fleet)
+    try:
+        minval = min(empty)
+        dropidx = empty.index(minval)
+        shift_end = time_now + timedelta(minutes = minval)
+        regions[region].get_vehicles()[idx[dropidx]].set_shift_end(shift_end)
+    except:
+        pass

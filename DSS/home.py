@@ -38,7 +38,7 @@ def create_home_page(canvas, images, stats):
 
 
     """ Three graphs -------------------"""
-    graph_titles = ['Cost per region', 'Customer waiting time per region']
+    graph_titles = ['Cost per sector', 'Customer waiting time per sector']
 
     for i in range(2):
         label = Label(canvas, text=graph_titles[i], bg='white', font=('Arial', 12))
