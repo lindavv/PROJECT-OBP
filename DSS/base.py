@@ -668,7 +668,7 @@ def update_home_stats(app):
 
 
 def task_start():
-    n = 20
+    n = 8
     dummy_simulation2(orders=orders, number=n, rownr=0, modes=settings_fourth_section)
     app.count += n
     update_home_stats(app)
@@ -709,21 +709,21 @@ def task_repeat():
     app.update_time_label()
 
     # update order status
-    for i in range(len(orders)-m, len(orders)):
-        if orders[i].status == 'Preparing':
-            update_order_status2(orders[i], app.time)
+    #for i in range(len(orders)-m, len(orders)):
+    #    if orders[i].status == 'Preparing':
+    #        update_order_status2(orders[i], app.time)
 
 
 
     # repeat loop
-    app.window.after(15000, task_repeat)  # 20 seconds
+    app.window.after(18000, task_repeat)  # 20 seconds
 
 
 # app.window.resizable(True, True)
 
 
 app.window.after(2000, task_start)
-app.window.after(15000, task_repeat)
+app.window.after(18000, task_repeat)
 
 app.window.mainloop()
 
