@@ -1,6 +1,9 @@
-#<<<<<<< Updated upstream
-orders = {}
-#=======
+"""
+This file contains functions that are used in several other modules
+ - Read orders csv
+ - Create orders and assign to restaurants and vehicles
+"""
+
 
 from algorithm.handle_vehiclefleet import *
 from classes.vehicle import assign_order
@@ -85,11 +88,6 @@ def dummy2(j):
     orders = {}
     pick_up_nodes, drop_off_nodes = [], []
 
-
-    # date = datetime.now().date()
-    # orders_df = read_df_of_day(date)
-
-    #orders = create_orders(orders, i, orders_df)
 
     for i in range(len(orders)):
         pick, drop = order_to_node(orders[i])

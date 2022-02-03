@@ -154,38 +154,7 @@ class Restaurant:
                     self.queue[food].remove(item)
 
 
-    def update_queue_old(self, dt):
-        """ Take orders out of queue that are done preparing """
 
-        t = dt.time()
-
-        # check which foods have been prepared
-        for food in self.foods.keys():
-            queue = self.queue[food].copy()
-
-            for item in queue:
-                if item[2].time() < t:
-                    self.finished['partial'].append(item)
-                    self.queue[food].remove(item)
-
-        # check which orders are fully completed
-        partial = []
-        for order in self.finished['partial']:
-            partial.append((order[0], order[1]))
-        partial = Counter(partial)  # make counter to see if amount done matches amount ordered
-
-        # add order object to finished['full'] list if all parts are completed
-        for item in partial:
-            if partial[item] == item[1]:  # if the number prepared of this order is the total amount ordered
-                self.finished['full'].append(item[0])
-
-        # if an order is fully completed, remove from partially completed list
-        partial = self.finished['partial'].copy()
-        for order in self.finished['full']:
-            for item in partial:
-                if order == item[0]:
-                    # add order ID to finished list
-                    self.finished['partial'].remove(item)
 
     def finish_day(self):
         """ Empty queue, finished['partial'] and finished['full']
@@ -225,10 +194,11 @@ class Restaurant:
         for key in self.foods.keys():
             self.queue[key] = []
 
-
+"""------ Restaurant dictionary ------------"""
 restaurants = {}
 for i in range(42):
     restaurants[i] = Restaurant(i)
+
 
 def update_order_waiting_time(order, end):
     start = order.window[0]
@@ -320,6 +290,10 @@ class Order:
 
 
     def choose_restaurant(self):
+        """
+        Consider all restaurant options, chose best one
+        Decide based on preparation time + restaurant queue + shortest path rest-cust
+        """
         options_t, options_i = [], []
 
         for rest in restaurants:

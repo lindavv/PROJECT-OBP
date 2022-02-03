@@ -2,7 +2,10 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
+"""
+This module was used for evaluating and comparing optimizers for the final report
+For using the DSS, or simulating a day, this file is irrelevant 
+"""
 
 
 path_parent = os.path.dirname(os. getcwd())
